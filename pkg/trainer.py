@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import torch
-from mpl_toolkits.axes_grid1 import host_subplot
 
 
 class Trainer:
@@ -12,21 +11,28 @@ class Trainer:
         self.__accuracies = []
 
     def __plot(self):
-        host = host_subplot(1, 1, 1)
-        plt.subplots_adjust(right=0.85)
+        fig, axes_loss = plt.subplots()
+        fig.suptitle('training steps')
+        fig.subplots_adjust(right=0.85)
 
-        host.set_xlabel('epochs')
-        host.set_ylabel('loss')
-        line_loss, = host.plot(range(len(self.__losses)), self.__losses, label='loss')
-        host.axis['left'].label.set_color(line_loss.get_color())
+        axes_loss.plot(
+            range(len(self.__losses)), self.__losses,
+            label='loss',
+            color='green'
+        )
+        axes_loss.set_xlabel('epochs')
+        axes_loss.set_ylabel('loss', color='green')
 
         if self.__accuracies:
-            par1 = host.twinx()
-            par1.set_ylabel('accuracy')
-            line_accuracy, = par1.plot(range(len(self.__accuracies)), self.__accuracies, label='accuracy')
-            par1.axis['right'].label.set_color(line_accuracy.get_color())
+            axes_accuracy = axes_loss.twinx()
+            axes_accuracy.plot(
+                range(len(self.__accuracies)), self.__accuracies,
+                label='accuracy',
+                color='red'
+            )
+            axes_accuracy.set_ylabel('accuracy', color='red')
 
-            host.legend(loc='center right')
+            fig.legend(loc='center right', bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
 
         plt.draw()
         plt.show()
