@@ -69,7 +69,7 @@ class Trainer:
             print(epoch, 'loss:', loss)
             if epoch >= 32:
                 self.__losses.append(loss)
-                self.__accuracies.append(1 - loss)
+                # self.__accuracies.append(1 - loss)
         self.__plot()
 
     def pre(self, x):

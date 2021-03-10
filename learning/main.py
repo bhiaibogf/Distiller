@@ -1,15 +1,16 @@
 import matplotlib.pyplot as plt
 
-from pkg import PolynomialModel, Trainer, Reader
+from pkg import Reader, Dataloader, PolynomialModel, Trainer
 
 
 def main():
-    reader = Reader(64)
-    polynomial_model = PolynomialModel(5)
-    trainer = Trainer(polynomial_model, reader.get_train_dataloader(), reader.get_valid_dataloader())
+    reader = Reader()
+    dataloader = Dataloader(reader, 64)
+    model = PolynomialModel(5)
+    trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
     trainer.train(128)
 
-    x, y = reader.get_data()
+    x, y = dataloader.get_data()
     y_pre = trainer.pre(x)
 
     plt.title('result')
