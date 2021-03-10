@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 
-from pkg import Reader, Dataloader, PolynomialModel, Trainer
+from pkg import PolynomialReader, Dataloader, PolynomialModel, Trainer
 
 
 def main():
-    reader = Reader()
+    reader = PolynomialReader()
     dataloader = Dataloader(reader, 64)
     model = PolynomialModel(5)
     trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
