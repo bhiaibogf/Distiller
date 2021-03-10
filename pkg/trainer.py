@@ -1,12 +1,35 @@
+import matplotlib.pyplot as plt
 import torch
+from mpl_toolkits.axes_grid1 import host_subplot
 
 
 class Trainer:
-
     def __init__(self, model, train_dataloader, valid_dataloader):
         self.model = model
-        self.train_dataloader = train_dataloader
-        self.valid_dataloader = valid_dataloader
+        self.__train_dataloader = train_dataloader
+        self.__valid_dataloader = valid_dataloader
+        self.__losses = []
+        self.__accuracies = []
+
+    def __plot(self):
+        host = host_subplot(1, 1, 1)
+        plt.subplots_adjust(right=0.85)
+
+        host.set_xlabel('epochs')
+        host.set_ylabel('loss')
+        line_loss, = host.plot(range(len(self.__losses)), self.__losses, label='loss')
+        host.axis['left'].label.set_color(line_loss.get_color())
+
+        if self.__accuracies:
+            par1 = host.twinx()
+            par1.set_ylabel('accuracy')
+            line_accuracy, = par1.plot(range(len(self.__accuracies)), self.__accuracies, label='accuracy')
+            par1.axis['right'].label.set_color(line_accuracy.get_color())
+
+            host.legend(loc='center right')
+
+        plt.draw()
+        plt.show()
 
     def __loss(self, x, y, need_backward=False):
         y_pre = self.model(x)
@@ -26,18 +49,22 @@ class Trainer:
         for epoch in range(epochs):
             # 训练集
             self.model.train()
-            for x, y in self.train_dataloader:
+            for x, y in self.__train_dataloader:
                 self.__loss(x, y, True)
 
             # 测试集
             self.model.eval()
             with torch.no_grad():
                 losses, cnt = 0, 0
-                for x, y in self.valid_dataloader:
+                for x, y in self.__valid_dataloader:
                     losses += self.__loss(x, y) * len(y)
                     cnt += len(y)
             loss = losses / cnt
-            print(epoch, loss)
+            print(epoch, 'loss:', loss)
+            if epoch >= 32:
+                self.__losses.append(loss)
+                self.__accuracies.append(1 - loss)
+        self.__plot()
 
     def pre(self, x):
         """
