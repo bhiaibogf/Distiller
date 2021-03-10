@@ -5,42 +5,41 @@ import torch.nn.functional as F
 
 
 class Reader(metaclass=ABCMeta):
-    @staticmethod
+    def __init__(self, train_data_size, valid_data_size):
+        self._train_data_size = train_data_size
+        self._valid_data_size = valid_data_size
+
     @abstractmethod
-    def get_train_data():
+    def get_train_data(self):
         pass
 
-    @staticmethod
     @abstractmethod
-    def get_valid_data():
+    def get_valid_data(self):
         pass
 
 
 class PolynomialReader(Reader):
-    @staticmethod
-    def get_train_data():
-        x = torch.linspace(-3, 3, 1024)
+    def get_train_data(self):
+        x = torch.linspace(-3, 3, self._train_data_size)
         y = torch.sin(x)
         return x, y
 
-    @staticmethod
-    def get_valid_data():
-        x = torch.linspace(-3, 3, 1024)
+    def get_valid_data(self):
+        x = torch.linspace(-3, 3, self._valid_data_size)
         y = torch.sin(x)
         return x, y
 
 
 class BlinnPhongReader(Reader):
-    def __init__(self):
-        self.__kd = torch.tensor([0.5, 0.7, 0.2])
-        self.__ks = torch.tensor([0.3, 0.2, 0.1])
-        self.__p = torch.tensor([12, 0, 0])
+    def __init__(self, train_data_size, valid_data_size):
+        super(BlinnPhongReader, self).__init__(train_data_size, valid_data_size)
+        self.__kd = torch.tensor([0.3, 0.2, 0.1])
+        self.__ks = torch.tensor([0.5, 0.9, 0.1])
+        self.__p = torch.tensor([8, 0, 0])
 
-    def get_train_data(self):
-        data_size = 1024
-        inputs = F.normalize(torch.rand(data_size, 3, 3), p=2, dim=2)
-        ls = torch.ones(data_size, 3)
-        for i in range(data_size):
+    def __get_data(self, inputs):
+        ls = torch.ones(inputs.shape[0], 3)
+        for i in range(inputs.shape[0]):
             intensity = 1
             light = inputs[i][0]
             normal = inputs[i][1]
@@ -48,10 +47,15 @@ class BlinnPhongReader(Reader):
             # diffuse
             l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
             # specular
-            half = F.normalize(light + view, p=2,dim=0)
+            half = F.normalize(light + view, p=2, dim=0)
             l_s = self.__ks * intensity * torch.pow(torch.max(torch.zeros(1), torch.dot(normal, half)), self.__p)
             ls[i] = l_s + l_d
-        return inputs, ls
+        return ls
+
+    def get_train_data(self):
+        inputs = F.normalize(torch.rand(self._train_data_size, 3, 3), p=2, dim=2)
+        return inputs, self.__get_data(inputs)
 
     def get_valid_data(self):
-        return self.get_train_data()
+        inputs = F.normalize(torch.rand(self._valid_data_size, 3, 3), p=2, dim=2)
+        return inputs, self.__get_data(inputs)

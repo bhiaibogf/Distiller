@@ -4,7 +4,7 @@ from pkg import PolynomialReader, Dataloader, PolynomialModel, Trainer
 
 
 def main():
-    reader = PolynomialReader()
+    reader = PolynomialReader(4096, 1024)
     dataloader = Dataloader(reader, 64)
     model = PolynomialModel(5)
     trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
