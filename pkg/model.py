@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as f
 
 
 class PolynomialModel(nn.Module):
@@ -22,17 +22,17 @@ class BlinnPhongModel(nn.Module):
     def __init__(self):
         super(BlinnPhongModel, self).__init__()
         # self.__ka = nn.Parameter(torch.rand(3))
-        self.__kd = nn.Parameter(torch.rand(3))
-        self.__ks = nn.Parameter(torch.rand(3))
-        self.__p = nn.Parameter(torch.rand(3))
+        self.__kd = nn.Parameter(torch.tensor([0.0, 0.0, 0.0]))
+        self.__ks = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
+        self.__p = nn.Parameter(torch.tensor(16.0))
 
         self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.01)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-1)
 
     def forward(self, inputs):
-        bat_size = inputs.shape[0]
-        ls = torch.ones(bat_size, 3)
-        for i in range(bat_size):
+        data_size = len(inputs)
+        ls = torch.empty(data_size, 3)
+        for i in range(data_size):
             intensity = 1
             light = inputs[i][0]
             normal = inputs[i][1]
@@ -40,10 +40,15 @@ class BlinnPhongModel(nn.Module):
             # diffuse
             l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
             # specular
-            half = F.normalize(light + view, p=2, dim=0)
-            l_s = self.__ks * intensity * torch.pow(torch.max(torch.zeros(1), torch.dot(normal, half)), self.__p[0])
+            half = f.normalize(light + view, p=2, dim=0)
+            l_s = self.__ks * intensity * torch.pow(torch.max(torch.zeros(1), torch.dot(normal, half)), self.__p)
             ls[i] = l_s + l_d
         return ls
+
+    def clamp_(self):
+        self.__kd.data.clamp_(0, 1)
+        self.__ks.data.clamp_(0, 1)
+        self.__p.data.clamp_(1, 64)
 
     def __str__(self):
         return 'kd={}\nks={}\np={}'.format(self.__kd.data, self.__ks.data, self.__p.data)

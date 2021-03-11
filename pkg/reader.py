@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as f
 
 
 class Reader(metaclass=ABCMeta):
@@ -35,11 +35,12 @@ class BlinnPhongReader(Reader):
         super(BlinnPhongReader, self).__init__(train_data_size, valid_data_size)
         self.__kd = torch.tensor([0.3, 0.2, 0.1])
         self.__ks = torch.tensor([0.5, 0.9, 0.1])
-        self.__p = torch.tensor([8, 0, 0])
+        self.__p = torch.tensor(8.0)
 
     def __get_data(self, inputs):
-        ls = torch.ones(inputs.shape[0], 3)
-        for i in range(inputs.shape[0]):
+        data_size = len(inputs)
+        ls = torch.empty(data_size, 3)
+        for i in range(data_size):
             intensity = 1
             light = inputs[i][0]
             normal = inputs[i][1]
@@ -47,15 +48,15 @@ class BlinnPhongReader(Reader):
             # diffuse
             l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
             # specular
-            half = F.normalize(light + view, p=2, dim=0)
+            half = f.normalize(light + view, p=2, dim=0)
             l_s = self.__ks * intensity * torch.pow(torch.max(torch.zeros(1), torch.dot(normal, half)), self.__p)
             ls[i] = l_s + l_d
         return ls
 
     def get_train_data(self):
-        inputs = F.normalize(torch.rand(self._train_data_size, 3, 3), p=2, dim=2)
+        inputs = f.normalize(torch.randn(self._train_data_size, 3, 3), p=2, dim=2)
         return inputs, self.__get_data(inputs)
 
     def get_valid_data(self):
-        inputs = F.normalize(torch.rand(self._valid_data_size, 3, 3), p=2, dim=2)
+        inputs = f.normalize(torch.randn(self._valid_data_size, 3, 3), p=2, dim=2)
         return inputs, self.__get_data(inputs)

@@ -42,7 +42,14 @@ class Trainer:
         loss = self.model.loss_function(y_pre, y)
         if need_backward:
             loss.backward()
+            # # 检查是否发生梯度爆炸
+            # for p in self.model.parameters():
+            #     if torch.isnan(p.grad[0]):
+            #         print(self.model)
+            #         raise Exception
+
             self.model.optimizer.step()
+            self.model.clamp_()
             self.model.optimizer.zero_grad()
         return loss
 
@@ -67,9 +74,8 @@ class Trainer:
                     cnt += len(y)
             loss = losses / cnt
             print(epoch, 'loss:', loss)
-            if epoch >= 32:
-                self.__losses.append(loss)
-                # self.__accuracies.append(1 - loss)
+            self.__losses.append(loss)
+            # self.__accuracies.append(1 - loss)
         self.__plot()
 
     def pre(self, x):
