@@ -60,3 +60,32 @@ class BlinnPhongReader(Reader):
     def get_valid_data(self):
         inputs = f.normalize(torch.randn(self._valid_data_size, 3, 3), p=2, dim=2)
         return inputs, self.__get_data(inputs)
+
+
+class BsdfReader(Reader):
+    def __init__(self, filename, train_data_size, valid_data_size):
+        super(BsdfReader, self).__init__(train_data_size, valid_data_size)
+        with open(filename) as file:
+            self.lines = file.readlines()
+
+    def __read_file(self, data_size):
+        x = torch.empty(data_size, 3, 3)
+        y = torch.empty(data_size, 3)
+        for i in range(data_size):
+            line = self.lines[i].replace('(', '').replace(')', '').split('|')
+            x[i][0] = torch.tensor([float(x) for x in line[0].split(' ')])
+            x[i][1] = torch.tensor([0, 0, 1])
+            x[i][2] = torch.tensor([float(x) for x in line[1].split(' ')])
+            y[i] = torch.tensor([float(x) for x in line[2].split(' ')])
+        return x, y
+
+    def get_train_data(self):
+        return self.__read_file(self._train_data_size)
+
+    def get_valid_data(self):
+        return self.__read_file(self._valid_data_size)
+
+
+if __name__ == '__main__':
+    reader = BsdfReader(2, 1)
+    x, y = reader.get_train_data()
