@@ -2,22 +2,6 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
-
-
-class PolynomialModel(nn.Module):
-    def __init__(self, dim):
-        super(PolynomialModel, self).__init__()
-        self.__dim = dim
-        self.__w = nn.Parameter(torch.rand(dim))
-        self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.01)
-
-    def forward(self, x):
-        inputs = torch.ones(self.__dim, x.shape[0])
-        for i in range(1, self.__dim):
-            inputs[i] = inputs[i - 1] * x
-        return torch.matmul(self.__w, inputs)
 
 
 class PhongBase(nn.Module):
@@ -55,23 +39,3 @@ class PhongBase(nn.Module):
 
     def __str__(self):
         return 'Ns {}\nkd {}\nks {}'.format(self.__alpha.data.item(), self.__kd.data.tolist(), self.__ks.data.tolist())
-
-
-class PhongModel(PhongBase):
-    def __init__(self):
-        super(PhongModel, self).__init__()
-
-    def specular(self, light, normal, view):
-        light2 = f.normalize(2 * (torch.dot(light, normal)) * normal - light, p=2, dim=0)
-        return torch.max(torch.zeros(1), torch.dot(view, light2))
-
-
-class BlinnPhongModel(PhongBase):
-    def __init__(self):
-        super(BlinnPhongModel, self).__init__()
-        self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-
-    def specular(self, light, normal, view):
-        half = f.normalize(light + view, p=2, dim=0)
-        return torch.max(torch.zeros(1), torch.dot(normal, half))
