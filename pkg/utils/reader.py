@@ -84,8 +84,3 @@ class BsdfReader(Reader):
 
     def get_valid_data(self):
         return self.__read_file(self._valid_data_size)
-
-
-if __name__ == '__main__':
-    reader = BsdfReader(2, 1)
-    x, y = reader.get_train_data()

@@ -1,5 +1,5 @@
-from pkg import BsdfReader, Dataloader, Trainer
 from pkg.model import *
+from pkg.utils import BsdfReader, Dataloader, Trainer
 
 
 def main():
