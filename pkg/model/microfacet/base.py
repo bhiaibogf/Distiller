@@ -3,6 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 
+def quick_pow(a, n):
+    if n == 1:
+        return a
+    a_n_2 = quick_pow(a, n // 2)
+    if n % 2 == 0:
+        return a_n_2 * a_n_2
+    else:
+        return a_n_2 * a_n_2 * a
+
+
 class MicrofacetBase(nn.Module):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
@@ -17,24 +27,24 @@ class MicrofacetBase(nn.Module):
         return 0
 
     def _schlick(self, vh):
-        f_0 = ((self._eta - 1) / (self._eta + 1)) ** 2
-        return f_0 + (1 - f_0) * (1 - vh) ** 5
+        f_0 = quick_pow((self._eta - 1) / (self._eta + 1), 2)
+        return torch.lerp(f_0, torch.tensor([1.0]), quick_pow(1 - vh, 5))
 
     def _cook_torrance(self, vh):
         c = vh
-        g = self._eta ** 2 + c ** 2 - 1
+        g = quick_pow(self._eta, 2) + quick_pow(c, 2) - 1
         if g > 0:
             g = torch.sqrt(g)
             a = (g - c) / (g + c)
             b = (c * (g + c) - 1) / (c * (g - c) + 1)
-            return 0.5 * a ** 2 * (1 + b ** 2)
+            return 0.5 * quick_pow(a, 2) * (1 + quick_pow(b, 2))
         return 1
 
     def f(self, vh):
         return self._cook_torrance(vh)
 
     def _c(self, nv):
-        return nv / self._alpha / torch.sqrt(1 - nv ** 2)
+        return nv / self._alpha / torch.sqrt(1 - quick_pow(nv, 2))
 
     def g(self, light, normal, view):
         return normal.dot(light) * normal.dot(view)
