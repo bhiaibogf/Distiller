@@ -14,8 +14,7 @@ class GgxModel(MicrofacetBase):
         return alpha_2 / math.pi / (nh ** 2 * (alpha_2 - 1) + 1) ** 2
 
     def g1(self, nv):
-        c2 = self._c(nv) ** 2
-        return 2 / (1 + torch.sqrt(1 / c2 + 1))
+        return 2 * nv / (nv + torch.sqrt(torch.lerp(self._alpha ** 2, torch.tensor([1.0]), nv ** 2)))
 
     def g(self, light, normal, view):
         return self.g1(normal.dot(view)) * self.g1(normal.dot(light))

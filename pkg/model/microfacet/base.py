@@ -1,5 +1,3 @@
-import math
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
@@ -8,8 +6,9 @@ import torch.nn.functional as f
 class MicrofacetBase(nn.Module):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
-        self._alpha = nn.Parameter(torch.tensor(0.8))
-        self._eta = nn.Parameter(torch.tensor(2.0))
+        self._base_color = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
+        self._alpha = nn.Parameter(torch.tensor([0.25]))
+        self._eta = nn.Parameter(torch.tensor([1.45]))
 
         self.loss_function = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
@@ -48,7 +47,7 @@ class MicrofacetBase(nn.Module):
             normal = inputs[i][1]
             view = inputs[i][2]
             half = f.normalize(light + view, p=2, dim=0)
-            ls[i] = 1 / math.pi
+            ls[i] = self._base_color
             ls[i] *= self.d(torch.dot(normal, half)) * self.g(light, normal, view) * self.f(torch.dot(view, half))
             ls[i] /= 4 * torch.dot(light, normal) * torch.dot(normal, view)
         return ls
@@ -58,4 +57,5 @@ class MicrofacetBase(nn.Module):
         self._eta.data.clamp_(1, 5)
 
     def __str__(self):
-        return 'alpha = {}, eta = {}'.format(self._alpha.data.item(), self._eta.data.item())
+        return 'basecolor = ({}, {}, {})\nalpha = {}, eta = {}'.format(
+            *self._base_color.tolist(), self._alpha.data.item(), self._eta.data.item())

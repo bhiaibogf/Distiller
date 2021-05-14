@@ -56,10 +56,10 @@ class Trainer:
         loss = self.__model.loss_function(y_pre, y)
         if need_backward:
             loss.backward()
-            # # 检查是否发生梯度爆炸
-            # for p in self.model.parameters():
+            # 检查是否发生梯度爆炸
+            # for p in self.__model.parameters():
             #     if torch.isnan(p.grad[0]):
-            #         print(self.model)
+            #         print(self.__model)
             #         raise Exception
 
             self.__model.optimizer.step()
@@ -91,6 +91,7 @@ class Trainer:
             print(epoch, 'loss:', loss)
             self.__losses.append(loss)
             # self.__accuracies.append(1 - loss)
+            print(self.__model)
         self.__plot()
 
     def pre(self, x):
