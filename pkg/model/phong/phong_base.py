@@ -9,10 +9,10 @@ class PhongBase(nn.Module):
         super(PhongBase, self).__init__()
         self.__kd = nn.Parameter(torch.tensor([0.0, 0.0, 0.0]))
         self.__ks = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
-        self.__alpha = nn.Parameter(torch.tensor(64.0))
+        self.__alpha = nn.Parameter(torch.tensor([64.0]))
 
         self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-1)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
 
     def specular(self, light, normal, view):
         return 1
@@ -21,10 +21,10 @@ class PhongBase(nn.Module):
         data_size = len(inputs)
         ls = torch.empty(data_size, 3)
         for i in range(data_size):
-            intensity = 1 / math.pi
             light = inputs[i][0]
             normal = inputs[i][1]
             view = inputs[i][2]
+            intensity = 1 / math.pi / normal.dot(light)
             # diffuse
             l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
             # specular
@@ -38,4 +38,5 @@ class PhongBase(nn.Module):
         self.__alpha.data.clamp_(1, 1024)
 
     def __str__(self):
-        return 'Ns {}\nkd {}\nks {}'.format(self.__alpha.data.item(), self.__kd.data.tolist(), self.__ks.data.tolist())
+        return 'Ns {}\nkd {} {} {}\nks {} {} {}'.format(
+            self.__alpha.data.item(), *self.__kd.data.tolist(), *self.__ks.data.tolist())
