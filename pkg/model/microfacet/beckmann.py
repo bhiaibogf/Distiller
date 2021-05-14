@@ -9,13 +9,13 @@ class BeckmannModel(MicrofacetBase):
     def __init__(self):
         super(BeckmannModel, self).__init__()
 
-    def d(self, nh):
+    def d(self, cos_nh):
         alpha_2 = quick_pow(self._alpha, 2)
-        nh_2 = quick_pow(nh, 2)
-        return torch.exp((nh_2 - 1) / (alpha_2 * nh_2)) / math.pi / alpha_2 / quick_pow(nh, 4)
+        nh_2 = quick_pow(cos_nh, 2)
+        return torch.exp((nh_2 - 1) / (alpha_2 * nh_2)) / math.pi / alpha_2 / quick_pow(cos_nh, 4)
 
-    def g1(self, nv):
-        c = self._c(nv)
+    def g1(self, cos_nv):
+        c = self._c(cos_nv)
         c2 = quick_pow(c, 2)
         if c < 1.6:
             return (3.535 * c + 2.181 * c2) / (1.0 + 2.276 * c + 2.577 * c2)

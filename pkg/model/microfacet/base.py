@@ -23,15 +23,15 @@ class MicrofacetBase(nn.Module):
         self.loss_function = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
 
-    def d(self, nh):
+    def d(self, cos_nh):
         return 0
 
-    def _schlick(self, vh):
+    def _schlick(self, cos_hv):
         f_0 = quick_pow((self._eta - 1) / (self._eta + 1), 2)
-        return torch.lerp(f_0, torch.tensor([1.0]), quick_pow(1 - vh, 5))
+        return torch.lerp(f_0, torch.tensor([1.0]), quick_pow(1 - cos_hv, 5))
 
-    def _cook_torrance(self, vh):
-        c = vh
+    def _cook_torrance(self, cos_hv):
+        c = cos_hv
         g = quick_pow(self._eta, 2) + quick_pow(c, 2) - 1
         if g > 0:
             g = torch.sqrt(g)
@@ -40,11 +40,11 @@ class MicrofacetBase(nn.Module):
             return 0.5 * quick_pow(a, 2) * (1 + quick_pow(b, 2))
         return 1
 
-    def f(self, vh):
-        return self._cook_torrance(vh)
+    def f(self, cos_hv):
+        return self._cook_torrance(cos_hv)
 
-    def _c(self, nv):
-        return nv / self._alpha / torch.sqrt(1 - quick_pow(nv, 2))
+    def _c(self, cos_nv):
+        return cos_nv / self._alpha / torch.sqrt(1 - quick_pow(cos_nv, 2))
 
     def g(self, light, normal, view):
         return normal.dot(light) * normal.dot(view)
@@ -58,8 +58,8 @@ class MicrofacetBase(nn.Module):
             view = inputs[i][2]
             half = f.normalize(light + view, p=2, dim=0)
             ls[i] = self._base_color
-            ls[i] *= self.d(torch.dot(normal, half)) * self.g(light, normal, view) * self.f(torch.dot(view, half))
-            ls[i] /= 4 * torch.dot(light, normal) * torch.dot(normal, view)
+            ls[i] *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
+            ls[i] /= 4 * normal.dot(light) * normal.dot(view)
         return ls
 
     def clamp_(self):
