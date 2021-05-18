@@ -16,12 +16,12 @@ def quick_pow(a, n):
 class MicrofacetBase(nn.Module):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
-        self._base_color = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
+        self._base_color = nn.Parameter(torch.tensor([1.8, 0.8, 1.4]))
         self._alpha = nn.Parameter(torch.tensor([0.25]))
         self._eta = nn.Parameter(torch.tensor([1.45]))
 
         self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
 
     def d(self, cos_nh):
         return 0
@@ -54,8 +54,8 @@ class MicrofacetBase(nn.Module):
         ls = torch.empty(data_size, 3)
         for i in range(data_size):
             light = inputs[i][0]
-            normal = inputs[i][1]
-            view = inputs[i][2]
+            normal = torch.tensor([0.0, 0.0, 1.0])
+            view = inputs[i][1]
             half = f.normalize(light + view, p=2, dim=0)
             ls[i] = self._base_color
             ls[i] *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))

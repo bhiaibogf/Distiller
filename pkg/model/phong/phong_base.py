@@ -22,8 +22,8 @@ class PhongBase(nn.Module):
         ls = torch.empty(data_size, 3)
         for i in range(data_size):
             light = inputs[i][0]
-            normal = inputs[i][1]
-            view = inputs[i][2]
+            normal = torch.tensor([0.0, 0.0, 1.0])
+            view = inputs[i][1]
             intensity = 1 / math.pi / normal.dot(light)
             # diffuse
             l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
