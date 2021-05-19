@@ -65,7 +65,7 @@ class Trainer:
             self.__model.optimizer.step()
             self.__model.clamp_()
             self.__model.optimizer.zero_grad()
-        return loss
+        return loss.data.item()
 
     def train(self, epochs):
         """
