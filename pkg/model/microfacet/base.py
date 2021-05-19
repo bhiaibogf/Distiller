@@ -2,21 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 
-
-def quick_pow(a, n):
-    if n == 1:
-        return a
-    a_n_2 = quick_pow(a, n // 2)
-    if n % 2 == 0:
-        return a_n_2 * a_n_2
-    else:
-        return a_n_2 * a_n_2 * a
+from pkg.model.utils import quick_pow, mon2lin
 
 
 class MicrofacetBase(nn.Module):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
-        self._base_color = nn.Parameter(torch.tensor([1.8, 0.8, 1.4]))
+        self._base_color = nn.Parameter(torch.tensor([0.8, 0.8, 0.8]))
         self._alpha = nn.Parameter(torch.tensor([0.25]))
         self._eta = nn.Parameter(torch.tensor([1.45]))
 
@@ -57,7 +49,7 @@ class MicrofacetBase(nn.Module):
             normal = torch.tensor([0.0, 0.0, 1.0])
             view = inputs[i][1]
             half = f.normalize(light + view, p=2, dim=0)
-            ls[i] = self._base_color
+            ls[i] = mon2lin(self._base_color)
             ls[i] *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
             ls[i] /= 4 * normal.dot(light) * normal.dot(view)
         return ls
