@@ -17,7 +17,3 @@ def quick_pow(a, n):
 
 def mon2lin(color):
     return color.pow(2.2)
-
-
-def mix(x, y, a):
-    return x * (1 - a) + y * a

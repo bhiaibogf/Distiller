@@ -92,6 +92,7 @@ class Trainer:
             self.__losses.append(loss)
             # self.__accuracies.append(1 - loss)
             print(self.__model)
+            self.__model.lr.step()
         self.__plot()
 
     def pre(self, x):

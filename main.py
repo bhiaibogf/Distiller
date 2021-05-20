@@ -3,11 +3,11 @@ from pkg.utils import BsdfReader2, Dataloader, Trainer
 
 
 def main():
-    reader = BsdfReader2('BSDF/alum-bronze.txt', 8192, 1024)
+    reader = BsdfReader2('BSDF/pvc.txt', 10000, 1024)
     dataloader = Dataloader(reader, 64)
-    model = GgxModel()
+    model = PrincipledBrdf()
     trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
-    trainer.train(128)
+    trainer.train(32)
     print(model)
 
 
