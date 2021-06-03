@@ -1,10 +1,11 @@
-import math
-
 import torch
 import torch.nn as nn
 
+from pkg.model.brdf_base import BrdfBase
+from pkg.model.utils import PI
 
-class PhongBase(nn.Module):
+
+class PhongBase(BrdfBase):
     def __init__(self):
         super(PhongBase, self).__init__()
         self.__kd = nn.Parameter(torch.tensor([0.0, 0.0, 0.0]))
@@ -24,9 +25,9 @@ class PhongBase(nn.Module):
             light = inputs[i][0]
             normal = torch.tensor([0.0, 0.0, 1.0])
             view = inputs[i][1]
-            intensity = 1 / math.pi / normal.dot(light)
+            intensity = 1 / PI / normal.dot(light)
             # diffuse
-            l_d = self.__kd * intensity * torch.max(torch.zeros(1), torch.dot(light, normal))
+            l_d = self.__kd * intensity * torch.max(torch.zeros(1), normal.dot(light))
             # specular
             l_s = self.__ks * intensity * torch.pow(self.specular(light, normal, view), self.__alpha)
             ls[i] = l_s + l_d
