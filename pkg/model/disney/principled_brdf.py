@@ -70,81 +70,72 @@ class PrincipledBrdf(BrdfBase):
     def _aniso(base, x, y):
         return base.dot(x), base.dot(y)
 
-    def forward(self, inputs):
-        data_size = len(inputs)
-        ls = torch.empty(data_size, 3)
-        for i in range(data_size):
-            light = inputs[i][0]
-            view = inputs[i][1]
-            half = f.normalize(light + view, p=2, dim=0)
+    def _eval(self, light, normal, view):
+        x = torch.tensor([1.0, 0.0, 0.0])
+        y = torch.tensor([0.0, 1.0, 0.0])
+        half = f.normalize(light + view, p=2, dim=0)
 
-            x = torch.tensor([1.0, 0.0, .0])
-            y = torch.tensor([0.0, 1.0, 0.0])
-            normal = torch.tensor([0.0, 0.0, 1.0])
+        cos_nl = normal.dot(light)
+        cos_nv = normal.dot(view)
+        cos_nh = normal.dot(half)
+        cos_hl = half.dot(light)
 
-            cos_nl = normal.dot(light)
-            cos_nv = normal.dot(view)
-            cos_nh = normal.dot(half)
-            cos_hl = half.dot(light)
+        if cos_nl < 0 or cos_nv < 0:
+            return torch.zeros(3)
 
-            if cos_nl < 0 or cos_nv < 0:
-                ls[i] = torch.zeros(3)
-                continue
+        cd_lin = mon2lin(self.__base_color)
+        cd_lum = .3 * cd_lin[0] + .6 * cd_lin[1] + .1 * cd_lin[2]
 
-            cd_lin = mon2lin(self.__base_color)
-            cd_lum = .3 * cd_lin[0] + .6 * cd_lin[1] + .1 * cd_lin[2]
+        if cd_lum > 0:
+            c_tint = cd_lin / cd_lum
+        else:
+            c_tint = torch.zeros(3)
+        c_spec0 = torch.lerp(
+            self.__specular * .08 * torch.lerp(
+                torch.ones(3),
+                c_tint,
+                self.__specular_tint
+            ),
+            cd_lin,
+            self.__metallic
+        )
+        c_sheen = torch.lerp(torch.ones(3), c_tint, self.__sheen_tint)
 
-            if cd_lum > 0:
-                c_tint = cd_lin / cd_lum
-            else:
-                c_tint = torch.zeros(3)
-            c_spec0 = torch.lerp(
-                self.__specular * .08 * torch.lerp(
-                    torch.ones(3),
-                    c_tint,
-                    self.__specular_tint
-                ),
-                cd_lin,
-                self.__metallic
-            )
-            c_sheen = torch.lerp(torch.ones(3), c_tint, self.__sheen_tint)
+        fresnel_l, fresnel_v = self._schlick(cos_nl), self._schlick(cos_nv)
+        fresnel_diffuse_90 = 0.5 + 2 * quick_pow(cos_hl, 2) * self.__roughness
+        fresnel_diffuse = torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_l) * \
+                          torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_v)
 
-            fresnel_l, fresnel_v = self._schlick(cos_nl), self._schlick(cos_nv)
-            fresnel_diffuse_90 = 0.5 + 2 * quick_pow(cos_hl, 2) * self.__roughness
-            fresnel_diffuse = torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_l) * \
-                              torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_v)
+        fresnel_ss_90 = sqr(cos_hl) * self.__roughness
+        fresnel_ss = torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_l) * \
+                     torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_v)
+        ss = 1.25 * (fresnel_ss * (1 / (cos_nl + cos_nv) - .5) + .5)
 
-            fresnel_ss_90 = sqr(cos_hl) * self.__roughness
-            fresnel_ss = torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_l) * \
-                         torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_v)
-            ss = 1.25 * (fresnel_ss * (1 / (cos_nl + cos_nv) - .5) + .5)
+        # specular
+        aspect = torch.sqrt(1 - self.__anisotropic * .9)
+        ax = max(.001, quick_pow(self.__roughness, 2) / aspect)
+        ay = max(.001, quick_pow(self.__roughness, 2) * aspect)
+        Ds = self._d_gtr2_aniso(cos_nh, *self._aniso(half, x, y), ax, ay)
+        FH = self._schlick(cos_hl)
+        Fs = torch.lerp(c_spec0, torch.ones(3), FH)
+        Gs = self._g_aniso(cos_nl, *self._aniso(light, x, y), ax, ay) * \
+             self._g_aniso(cos_nv, *self._aniso(view, x, y), ax, ay)
+        specular = Gs * Fs * Ds
 
-            # specular
-            aspect = torch.sqrt(1 - self.__anisotropic * .9)
-            ax = max(.001, quick_pow(self.__roughness, 2) / aspect)
-            ay = max(.001, quick_pow(self.__roughness, 2) * aspect)
-            Ds = self._d_gtr2_aniso(cos_nh, *self._aniso(half, x, y), ax, ay)
-            FH = self._schlick(cos_hl)
-            Fs = torch.lerp(c_spec0, torch.ones(3), FH)
-            Gs = self._g_aniso(cos_nl, *self._aniso(light, x, y), ax, ay) * \
-                 self._g_aniso(cos_nv, *self._aniso(view, x, y), ax, ay)
-            specular = Gs * Fs * Ds
+        Fsheen = FH * self.__sheen * c_sheen
+        diffuse = ((1 / PI)
+                   * torch.lerp(fresnel_diffuse, ss, self.__subsurface)
+                   * cd_lin
+                   + Fsheen
+                   ) * (1 - self.__metallic)
 
-            Fsheen = FH * self.__sheen * c_sheen
-            diffuse = ((1 / PI)
-                       * torch.lerp(fresnel_diffuse, ss, self.__subsurface)
-                       * cd_lin
-                       + Fsheen
-                       ) * (1 - self.__metallic)
+        # clear_coat
+        Dr = self._d_gtr1(cos_nh, torch.lerp(torch.tensor([.1]), torch.tensor([.001]), self.__clear_coat_gloss))
+        Fr = torch.lerp(torch.tensor(.04), torch.tensor(1.0), FH)
+        Gr = self._g(cos_nl, .25) * self._g(cos_nv, .25)
+        clear_coat = .25 * self.__clear_coat * Gr * Fr * Dr
 
-            # clear_coat
-            Dr = self._d_gtr1(cos_nh, torch.lerp(torch.tensor([.1]), torch.tensor([.001]), self.__clear_coat_gloss))
-            Fr = torch.lerp(torch.tensor(.04), torch.tensor(1.0), FH)
-            Gr = self._g(cos_nl, .25) * self._g(cos_nv, .25)
-            clear_coat = .25 * self.__clear_coat * Gr * Fr * Dr
-
-            ls[i] = diffuse + specular + clear_coat
-        return ls
+        return diffuse + specular + clear_coat
 
 
 if __name__ == '__main__':

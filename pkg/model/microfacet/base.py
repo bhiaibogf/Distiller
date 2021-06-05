@@ -42,17 +42,11 @@ class MicrofacetBase(BrdfBase):
     def g(self, light, normal, view):
         return normal.dot(light) * normal.dot(view)
 
-    def forward(self, inputs):
-        data_size = len(inputs)
-        ls = torch.empty(data_size, 3)
-        for i in range(data_size):
-            light = inputs[i][0]
-            normal = torch.tensor([0.0, 0.0, 1.0])
-            view = inputs[i][1]
-            half = f.normalize(light + view, p=2, dim=0)
-            ls[i] = mon2lin(self._base_color)
-            ls[i] *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
-            ls[i] /= 4 * normal.dot(light) * normal.dot(view)
+    def _eval(self, light, normal, view):
+        half = f.normalize(light + view, p=2, dim=0)
+        ls = mon2lin(self._base_color)
+        ls *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
+        ls /= 4 * normal.dot(light) * normal.dot(view)
         return ls
 
     def clamp_(self):

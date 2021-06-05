@@ -18,20 +18,13 @@ class PhongBase(BrdfBase):
     def specular(self, light, normal, view):
         return 1
 
-    def forward(self, inputs):
-        data_size = len(inputs)
-        ls = torch.empty(data_size, 3)
-        for i in range(data_size):
-            light = inputs[i][0]
-            normal = torch.tensor([0.0, 0.0, 1.0])
-            view = inputs[i][1]
-            intensity = 1 / PI / normal.dot(light)
-            # diffuse
-            l_d = self.__kd * intensity * torch.max(torch.zeros(1), normal.dot(light))
-            # specular
-            l_s = self.__ks * intensity * torch.pow(self.specular(light, normal, view), self.__alpha)
-            ls[i] = l_s + l_d
-        return ls
+    def _eval(self, light, normal, view):
+        intensity = 1 / PI / normal.dot(light)
+        # diffuse
+        l_d = self.__kd * intensity * torch.max(torch.zeros(1), normal.dot(light))
+        # specular
+        l_s = self.__ks * intensity * torch.pow(self.specular(light, normal, view), self.__alpha)
+        return l_s + l_d
 
     def clamp_(self):
         self.__kd.data.clamp_(0, 1)
