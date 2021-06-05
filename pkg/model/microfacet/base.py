@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 
-from pkg.model.utils import quick_pow, mon2lin
+from pkg.model.brdf_base import BrdfBase
+from pkg.model.utils import quick_pow, mon2lin, sqr
 
 
-class MicrofacetBase(nn.Module):
+class MicrofacetBase(BrdfBase):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
         self._base_color = nn.Parameter(torch.tensor([0.8, 0.8, 0.8]))
@@ -19,24 +20,24 @@ class MicrofacetBase(nn.Module):
         return 0
 
     def _schlick(self, cos_hv):
-        f_0 = quick_pow((self._eta - 1) / (self._eta + 1), 2)
-        return torch.lerp(f_0, torch.tensor([1.0]), quick_pow(1 - cos_hv, 5))
+        f_0 = sqr(self._eta - 1) / (self._eta + 1)
+        return torch.lerp(f_0, torch.ones(3), quick_pow(1 - cos_hv, 5))
 
     def _cook_torrance(self, cos_hv):
         c = cos_hv
-        g = quick_pow(self._eta, 2) + quick_pow(c, 2) - 1
+        g = sqr(self._eta) + sqr(c) - 1
         if g > 0:
             g = torch.sqrt(g)
             a = (g - c) / (g + c)
             b = (c * (g + c) - 1) / (c * (g - c) + 1)
-            return 0.5 * quick_pow(a, 2) * (1 + quick_pow(b, 2))
+            return 0.5 * sqr(a) * (1 + sqr(b))
         return 1
 
     def f(self, cos_hv):
         return self._cook_torrance(cos_hv)
 
     def _c(self, cos_nv):
-        return cos_nv / self._alpha / torch.sqrt(1 - quick_pow(cos_nv, 2))
+        return cos_nv / self._alpha / torch.sqrt(1 - sqr(cos_nv))
 
     def g(self, light, normal, view):
         return normal.dot(light) * normal.dot(view)

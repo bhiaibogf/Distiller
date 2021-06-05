@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from pkg.model.microfacet.base import MicrofacetBase, quick_pow
+from pkg.model.microfacet.base import MicrofacetBase, sqr
 
 
 class GgxModel(MicrofacetBase):
@@ -10,12 +10,12 @@ class GgxModel(MicrofacetBase):
         super(GgxModel, self).__init__()
 
     def d(self, cos_nh):
-        alpha_2 = quick_pow(self._alpha, 2)
-        return alpha_2 / math.pi / quick_pow(torch.lerp(torch.tensor([1.0]), alpha_2, quick_pow(cos_nh, 2)), 2)
+        alpha_2 = sqr(self._alpha)
+        return alpha_2 / math.pi / sqr(torch.lerp(torch.tensor([1.0]), alpha_2, sqr(cos_nh)))
 
     def g1(self, cos_nv):
         return 2 * cos_nv / (cos_nv + torch.sqrt(
-            torch.lerp(quick_pow(self._alpha, 2), torch.tensor([1.0]), quick_pow(cos_nv, 2))))
+            torch.lerp(sqr(self._alpha), torch.tensor([1.0]), sqr(cos_nv))))
 
     def g(self, light, normal, view):
         return self.g1(normal.dot(view)) * self.g1(normal.dot(light))
