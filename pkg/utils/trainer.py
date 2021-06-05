@@ -76,12 +76,10 @@ class Trainer:
         """
         for epoch in range(epochs):
             # 训练
-            self.__model.train()
             for x, y in self.__train_dataloader:
                 self.__loss(x, y, True)
 
             # 测试
-            self.__model.eval()
             with torch.no_grad():
                 losses, cnt = 0, 0
                 for x, y in self.__valid_dataloader:
