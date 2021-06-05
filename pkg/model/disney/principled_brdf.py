@@ -40,6 +40,7 @@ class PrincipledBrdf(BrdfBase):
         if alpha >= 1:
             return 1 / PI
         a2 = sqr(alpha)
+        t = 1 + (a2 - 1) * sqr(cos_nh)
         return (a2 - 1) / (PI * torch.log(a2) * t)
 
     @staticmethod
