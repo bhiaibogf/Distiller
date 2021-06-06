@@ -36,35 +36,35 @@ class PrincipledBrdf(BrdfBase):
         return quick_pow(m, 5)
 
     @staticmethod
-    def _d_gtr1(cos_nh, alpha):
+    def _d_gtr1(cos_nm, alpha):
         if alpha >= 1:
             return 1 / PI
         a2 = sqr(alpha)
-        t = 1 + (a2 - 1) * sqr(cos_nh)
+        t = 1 + (a2 - 1) * sqr(cos_nm)
         return (a2 - 1) / (PI * torch.log(a2) * t)
 
     @staticmethod
-    def _d_gtr2(cos_nh, alpha):
+    def _d_gtr2(cos_nm, alpha):
         a2 = sqr(alpha)
-        t = 1 + (a2 - 1) * sqr(cos_nh)
+        t = 1 + (a2 - 1) * sqr(cos_nm)
         return a2 / (PI * sqr(t))
 
     @staticmethod
-    def _d_gtr2_aniso(cos_nh, cos_hx, cos_hy, ax, ay):
+    def _d_gtr2_aniso(cos_nm, cos_xm, cos_ym, ax, ay):
         return 1 / (PI * ax * ay * sqr(
-            sqr(cos_hx / ax) + sqr(cos_hy / ay) + sqr(cos_nh)
+            sqr(cos_xm / ax) + sqr(cos_ym / ay) + sqr(cos_nm)
         ))
 
     @staticmethod
-    def _g(cos_nv, alpha):
+    def _g(cos_ns, alpha):
         a = sqr(alpha)
-        b = sqr(cos_nv)
-        return 1 / (cos_nv + torch.sqrt(a + b - a * b))
+        b = sqr(cos_ns)
+        return 1 / (cos_ns + torch.sqrt(a + b - a * b))
 
     @staticmethod
-    def _g_aniso(cos_nv, cos_vx, cos_vy, ax, ay):
-        return 1 / (cos_nv + torch.sqrt(
-            sqr(cos_vx * ax) + sqr(cos_vy * ay) + sqr(cos_nv)
+    def _g_aniso(cos_ns, cos_xs, cos_ys, ax, ay):
+        return 1 / (cos_ns + torch.sqrt(
+            sqr(cos_xs * ax) + sqr(cos_ys * ay) + sqr(cos_ns)
         ))
 
     @staticmethod
