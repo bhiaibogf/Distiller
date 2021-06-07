@@ -3,14 +3,17 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 from pkg.model.brdf_base import BrdfBase
-from pkg.model.utils import quick_pow, mon2lin, sqr
+from pkg.model.utils import quick_pow, mon2lin, sqr, PI
 
 
 class MicrofacetBase(BrdfBase):
     def __init__(self):
         super(MicrofacetBase, self).__init__()
+
+        self._diffuse_color = nn.Parameter(torch.tensor([0.1, 0.1, 0.1]))
+
         self._base_color = nn.Parameter(torch.tensor([0.8, 0.8, 0.8]))
-        self._alpha = nn.Parameter(torch.tensor([0.25]))
+        self._alpha = nn.Parameter(torch.tensor([0.5]))
         self._eta = nn.Parameter(torch.tensor([1.45]))
 
         self.loss_function = nn.MSELoss()
@@ -20,7 +23,7 @@ class MicrofacetBase(BrdfBase):
         return 0
 
     def _schlick(self, cos_hv):
-        f_0 = sqr(self._eta - 1) / (self._eta + 1)
+        f_0 = sqr((self._eta - 1) / (self._eta + 1))
         return torch.lerp(f_0, torch.ones(3), quick_pow(1 - cos_hv, 5))
 
     def _cook_torrance(self, cos_hv):
@@ -34,7 +37,7 @@ class MicrofacetBase(BrdfBase):
         return 1
 
     def f(self, cos_hv):
-        return self._cook_torrance(cos_hv)
+        return self._schlick(cos_hv)
 
     def _c(self, cos_nv):
         return cos_nv / self._alpha / torch.sqrt(1 - sqr(cos_nv))
@@ -47,6 +50,7 @@ class MicrofacetBase(BrdfBase):
         ls = mon2lin(self._base_color)
         ls *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
         ls /= 4 * normal.dot(light) * normal.dot(view)
+        ls += mon2lin(self._diffuse_color) / PI
         return ls
 
     def clamp_(self):
@@ -54,5 +58,6 @@ class MicrofacetBase(BrdfBase):
         self._eta.data.clamp_(1, 5)
 
     def __str__(self):
-        return 'basecolor = ({}, {}, {})\nalpha = {}, eta = {}'.format(
-            *self._base_color.tolist(), self._alpha.data.item(), self._eta.data.item())
+        return 'diffuse_color = {}\nbase_color = {}\nalpha = {}, eta = {}'.format(
+            self._diffuse_color.tolist(), self._base_color.tolist(),
+            self._alpha.data.item(), self._eta.data.item())
