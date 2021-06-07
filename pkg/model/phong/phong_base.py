@@ -10,7 +10,7 @@ class PhongBase(BrdfBase):
         super(PhongBase, self).__init__()
         self.__kd = nn.Parameter(torch.tensor([0.0, 0.0, 0.0]))
         self.__ks = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
-        self.__alpha = nn.Parameter(torch.tensor([64.0]))
+        self.__alpha = nn.Parameter(torch.tensor([10000.0]))
 
         self.loss_function = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
@@ -29,7 +29,6 @@ class PhongBase(BrdfBase):
     def clamp_(self):
         self.__kd.data.clamp_(0, 1)
         self.__ks.data.clamp_(0, 1)
-        self.__alpha.data.clamp_(1, 1024)
 
     def __str__(self):
         return 'Ns {}\nkd {} {} {}\nks {} {} {}'.format(
