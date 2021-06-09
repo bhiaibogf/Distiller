@@ -56,8 +56,3 @@ class MicrofacetBase(BrdfBase):
     def clamp_(self):
         self._alpha.data.clamp_(0, 1)
         self._eta.data.clamp_(1, 5)
-
-    def __str__(self):
-        return 'diffuse_color = {}\nbase_color = {}\nalpha = {}, eta = {}'.format(
-            self._diffuse_color.tolist(), self._base_color.tolist(),
-            self._alpha.data.item(), self._eta.data.item())

@@ -3,6 +3,8 @@ import threading
 import torch
 import torch.nn as nn
 
+from pkg.model.utils import to_hex
+
 
 class BrdfBase(nn.Module):
     def __init__(self):
@@ -14,11 +16,15 @@ class BrdfBase(nn.Module):
 
     def __str__(self):
         for name, param in self.named_parameters():
-            name = name[name.rfind('__') + 2:]
+            class_name = self.__class__.__name__
+            if name.find(class_name) != -1:
+                name = name[len(class_name) + 1:]
+            while name[0] == '_':
+                name = name[1:]
             if param.size() == (1,):
                 print("{} = {}".format(name, param.data.item()))
             else:
-                print("{} = {}".format(name, param.data.tolist()))
+                print("{} = {} #{}".format(name, param.data.tolist(), to_hex(param.data.tolist())))
         return ''
 
     def _eval(self, light, normal, view):
