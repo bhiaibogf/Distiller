@@ -48,6 +48,7 @@ class Trainer:
             fig.legend(loc='center right',
                        bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
 
+        plt.savefig('img/' + self.__model.__class__.__name__ + '.png')
         plt.draw()
         plt.show()
 

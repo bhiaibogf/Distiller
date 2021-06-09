@@ -15,6 +15,7 @@ class BrdfBase(nn.Module):
         self.lr = None
 
     def __str__(self):
+        output = ''
         for name, param in self.named_parameters():
             class_name = self.__class__.__name__
             if name.find(class_name) != -1:
@@ -22,10 +23,10 @@ class BrdfBase(nn.Module):
             while name[0] == '_':
                 name = name[1:]
             if param.size() == (1,):
-                print("{} = {}".format(name, param.data.item()))
+                output += "{} = {}\n".format(name, param.data.item())
             else:
-                print("{} = {} #{}".format(name, param.data.tolist(), to_hex(param.data.tolist())))
-        return ''
+                output += "{} = {} #{}\n".format(name, param.data.tolist(), to_hex(param.data.tolist()))
+        return output
 
     def _eval(self, light, normal, view):
         return torch.ones(3)
