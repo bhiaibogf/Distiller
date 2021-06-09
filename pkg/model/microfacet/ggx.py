@@ -1,6 +1,6 @@
 import torch
 
-from pkg.model.microfacet.base import MicrofacetBase, sqr, PI
+from pkg.model.microfacet.microfacet_base import MicrofacetBase, sqr, PI
 
 
 class GgxModel(MicrofacetBase):

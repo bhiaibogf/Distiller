@@ -1,6 +1,6 @@
 import torch
 
-from pkg.model.microfacet.base import MicrofacetBase, quick_pow, sqr, PI
+from pkg.model.microfacet.microfacet_base import MicrofacetBase, quick_pow, sqr, PI
 
 
 class BeckmannModel(MicrofacetBase):
