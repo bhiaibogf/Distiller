@@ -9,22 +9,22 @@ from pkg.model.utils import *
 class PrincipledBrdf(BrdfBase):
     def __init__(self):
         super(PrincipledBrdf, self).__init__()
-        self.__base_color = nn.Parameter(torch.tensor([0.8, 0.8, 0.8]))
+        self.__base_color = nn.Parameter(torch.tensor([0.3, 0.3, 0.5]))
 
-        self.__metallic = nn.Parameter(torch.tensor([0.0]))
-        self.__subsurface = nn.Parameter(torch.tensor([0.0]))
+        self.__metallic = nn.Parameter(torch.tensor([0.9]))
+        self.__subsurface = nn.Parameter(torch.tensor([0.1]))
         self.__specular = nn.Parameter(torch.tensor([0.5]))
         self.__roughness = nn.Parameter(torch.tensor([0.5]))
-        self.__specular_tint = nn.Parameter(torch.tensor([0.0]))
+        self.__specular_tint = nn.Parameter(torch.tensor([0.9]))
         self.__anisotropic = nn.Parameter(torch.tensor([0.0]))
-        self.__sheen = nn.Parameter(torch.tensor([0.0]))
+        self.__sheen = nn.Parameter(torch.tensor([0.1]))
         self.__sheen_tint = nn.Parameter(torch.tensor([0.5]))
-        self.__clear_coat = nn.Parameter(torch.tensor([0.0]))
-        self.__clear_coat_gloss = nn.Parameter(torch.tensor([1.0]))
+        self.__clear_coat = nn.Parameter(torch.tensor([0.1]))
+        self.__clear_coat_gloss = nn.Parameter(torch.tensor([0.5]))
 
         self.loss_function = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=30, gamma=0.1)
+        # self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=30, gamma=0.1)
 
     def clamp_(self):
         for param in self.parameters():
@@ -103,7 +103,7 @@ class PrincipledBrdf(BrdfBase):
         c_sheen = torch.lerp(torch.ones(3), c_tint, self.__sheen_tint)
 
         fresnel_l, fresnel_v = self._schlick(cos_nl), self._schlick(cos_nv)
-        fresnel_diffuse_90 = 0.5 + 2 * quick_pow(cos_hl, 2) * self.__roughness
+        fresnel_diffuse_90 = 0.5 + 2 * sqr(cos_hl) * self.__roughness
         fresnel_diffuse = torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_l) * \
                           torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_v)
 

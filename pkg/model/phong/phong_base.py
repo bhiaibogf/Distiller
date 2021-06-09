@@ -8,12 +8,12 @@ from pkg.model.utils import PI
 class PhongBase(BrdfBase):
     def __init__(self):
         super(PhongBase, self).__init__()
-        self.__kd = nn.Parameter(torch.tensor([0.0, 0.0, 0.0]))
-        self.__ks = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
-        self.__alpha = nn.Parameter(torch.tensor([10000.0]))
+        self.__kd = nn.Parameter(torch.tensor([0.1, 0.1, 0.1]))
+        self.__ks = nn.Parameter(torch.tensor([0.1, 0.1, 0.1]))
+        self.__alpha = nn.Parameter(torch.tensor([10.0]))
 
         self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
 
     def specular(self, light, normal, view):
         return 1
