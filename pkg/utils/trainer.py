@@ -52,9 +52,17 @@ class Trainer:
         plt.draw()
         plt.show()
 
+    @staticmethod
+    def __cos(x, y):
+        l, v = x.split(1, 1)
+        l.squeeze_()
+        v.squeeze_()
+        cos = torch.einsum('ij,ij->i', l, v)
+        return torch.einsum('i,ij->ij', cos, y)
+
     def __loss(self, x, y, need_backward=False):
         y_pre = self.__model(x)
-        loss = self.__model.loss_function(y_pre, y)
+        loss = self.__model.loss_function(self.__cos(x, y_pre), self.__cos(x, y))
         if need_backward:
             loss.backward()
             # 检查是否发生梯度爆炸
