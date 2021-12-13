@@ -7,14 +7,14 @@ from pkg.model.utils import *
 
 
 class PrincipledBrdf(BrdfBase):
-    def __init__(self):
+    def __init__(self, roughness=0.5, metallic=0.0):
         super(PrincipledBrdf, self).__init__()
         self.__base_color = nn.Parameter(torch.tensor([0.5, 0.5, 0.5]))
 
-        self.__metallic = nn.Parameter(torch.tensor([0.0]))
+        self.__metallic = nn.Parameter(torch.tensor([metallic]))
         self.__subsurface = nn.Parameter(torch.tensor([0.0]))
         self.__specular = nn.Parameter(torch.tensor([0.5]))
-        self.__roughness = nn.Parameter(torch.tensor([0.5]))
+        self.__roughness = nn.Parameter(torch.tensor([roughness]))
         self.__specular_tint = nn.Parameter(torch.tensor([0.0]))
         self.__anisotropic = nn.Parameter(torch.tensor([0.0]))
         self.__sheen = nn.Parameter(torch.tensor([0.0]))
