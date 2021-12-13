@@ -9,18 +9,18 @@ from pkg.model.utils import *
 class PrincipledBrdf(BrdfBase):
     def __init__(self):
         super(PrincipledBrdf, self).__init__()
-        self.__base_color = nn.Parameter(torch.tensor([0.3, 0.3, 0.5]))
+        self.__base_color = nn.Parameter(torch.tensor([0.5, 0.5, 0.5]))
 
-        self.__metallic = nn.Parameter(torch.tensor([0.9]))
-        self.__subsurface = nn.Parameter(torch.tensor([0.1]))
+        self.__metallic = nn.Parameter(torch.tensor([0.0]))
+        self.__subsurface = nn.Parameter(torch.tensor([0.0]))
         self.__specular = nn.Parameter(torch.tensor([0.5]))
         self.__roughness = nn.Parameter(torch.tensor([0.5]))
-        self.__specular_tint = nn.Parameter(torch.tensor([0.9]))
+        self.__specular_tint = nn.Parameter(torch.tensor([0.0]))
         self.__anisotropic = nn.Parameter(torch.tensor([0.0]))
-        self.__sheen = nn.Parameter(torch.tensor([0.1]))
+        self.__sheen = nn.Parameter(torch.tensor([0.0]))
         self.__sheen_tint = nn.Parameter(torch.tensor([0.5]))
-        self.__clear_coat = nn.Parameter(torch.tensor([0.1]))
-        self.__clear_coat_gloss = nn.Parameter(torch.tensor([0.5]))
+        self.__clear_coat = nn.Parameter(torch.tensor([0.0]))
+        self.__clear_coat_gloss = nn.Parameter(torch.tensor([1.0]))
 
         self.loss_function = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
