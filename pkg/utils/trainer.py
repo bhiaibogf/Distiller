@@ -56,10 +56,8 @@ class Trainer:
 
     @staticmethod
     def __cos(x, y):
-        l, v = x.split(1, 1)
-        l.squeeze_()
-        v.squeeze_()
-        cos = torch.einsum('ij,ij->i', l, v)
+        light_z = x[:, 0:1, -1:]
+        cos = light_z.squeeze()
         return torch.einsum('i,ij->ij', cos, y)
 
     def __loss(self, x, y, need_backward=False):
@@ -99,7 +97,7 @@ class Trainer:
                     losses += self.__loss(x, y) * len(y)
                     cnt += len(y)
                     max_brdf = max(max_brdf, torch.max(y))
-                    # _max = max(_max, torch.max(self.__cos(x, y)))
+                    # max_brdf = max(max_brdf, torch.max(self.__cos(x, y)))
             loss = losses / cnt
             psnr = 10 * math.log10(max_brdf * max_brdf / loss)
             print('epoch {} :\nloss : {}\npsnr : {}({})'.format(epoch, loss, psnr, max_brdf))
