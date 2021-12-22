@@ -2,7 +2,8 @@ from abc import ABCMeta, abstractmethod
 
 import pandas as pd
 import torch
-import torch.nn.functional as f
+
+from pkg.utils.sampler import Sampler
 
 
 class Reader(metaclass=ABCMeta):
@@ -40,11 +41,17 @@ class ModelReader(Reader):
         return self.__model(inputs).detach()
 
     def get_train_data(self):
-        inputs = f.normalize(torch.randn(self._train_data_size, 2, 3), p=2, dim=2)
+        light = Sampler.cos_hemisphere(self._train_data_size)
+        view = Sampler.cos_hemisphere(self._train_data_size)
+        inputs = torch.stack((light, view), 1)
+        assert inputs.shape == (self._train_data_size, 2, 3)
+
         return inputs, self._get_data(inputs)
 
     def get_valid_data(self):
-        inputs = f.normalize(torch.randn(self._valid_data_size, 2, 3), p=2, dim=2)
+        light = Sampler.cos_hemisphere(self._train_data_size)
+        view = Sampler.cos_hemisphere(self._train_data_size)
+        inputs = torch.stack((light, view), 1)
         return inputs, self._get_data(inputs)
 
 
