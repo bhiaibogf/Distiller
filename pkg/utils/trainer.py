@@ -1,6 +1,8 @@
 """
 用于训练模型的模块
 """
+import math
+
 import matplotlib.pyplot as plt
 import torch
 
@@ -62,7 +64,8 @@ class Trainer:
 
     def __loss(self, x, y, need_backward=False):
         y_pre = self.__model(x)
-        loss = self.__model.loss_function(self.__cos(x, y_pre), self.__cos(x, y))
+        loss = self.__model.loss_function(y_pre, y)
+        # loss = self.__model.loss_function(self.__cos(x, y_pre), self.__cos(x, y))
         if need_backward:
             loss.backward()
             # 检查是否发生梯度爆炸
@@ -89,13 +92,17 @@ class Trainer:
                 self.__loss(x, y, True)
 
             # 测试
+            losses, cnt = 0, 0
+            max_brdf = 0
             with torch.no_grad():
-                losses, cnt = 0, 0
                 for x, y in self.__valid_dataloader:
                     losses += self.__loss(x, y) * len(y)
                     cnt += len(y)
+                    max_brdf = max(max_brdf, torch.max(y))
+                    # _max = max(_max, torch.max(self.__cos(x, y)))
             loss = losses / cnt
-            print(epoch, 'loss:', loss)
+            psnr = 10 * math.log10(max_brdf * max_brdf / loss)
+            print('epoch {} :\nloss : {}\npsnr : {}({})'.format(epoch, loss, psnr, max_brdf))
             self.__losses.append(loss)
             # self.__accuracies.append(1 - loss)
             print(self.__model)
