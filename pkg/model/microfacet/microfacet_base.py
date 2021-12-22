@@ -17,7 +17,7 @@ class MicrofacetBase(BrdfBase):
         self._eta = nn.Parameter(torch.tensor([1.45]))
 
         self.loss_function = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
 
     def d(self, cos_nh):
         return 0
