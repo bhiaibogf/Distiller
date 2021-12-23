@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from pkg.model.brdf_base import BrdfBase
-from pkg.model.utils import const
+from distiller.model.brdf_base import BrdfBase
+from distiller.utils import const
 
 
 class PhongBase(BrdfBase):

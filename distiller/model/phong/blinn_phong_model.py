@@ -1,8 +1,8 @@
 import torch
 import torch.nn.functional as f
 
-from pkg.model.phong.phong_base import PhongBase
-from pkg.model.utils import const
+from distiller.model.phong.phong_base import PhongBase
+from distiller.utils import const
 
 
 class BlinnPhongModel(PhongBase):

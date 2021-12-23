@@ -1,5 +1,5 @@
-from pkg.model import *
-from pkg.utils import Dataloader, Trainer, ModelReader
+from distiller.model import *
+from distiller.utils import Dataloader, Trainer, ModelReader, const
 
 
 def main():

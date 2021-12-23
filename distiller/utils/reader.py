@@ -3,8 +3,8 @@ from abc import ABCMeta, abstractmethod
 import pandas as pd
 import torch
 
-from pkg.model.utils import const
-from pkg.utils.sampler import Sampler
+from distiller.utils import const
+from distiller.utils.sampler import Sampler
 
 
 class Reader(metaclass=ABCMeta):

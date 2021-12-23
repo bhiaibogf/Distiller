@@ -1,7 +1,7 @@
 import torch
 
-from pkg.model.microfacet.microfacet_base import MicrofacetBase
-from pkg.model.utils import *
+from distiller.model.microfacet.microfacet_base import MicrofacetBase
+from distiller.utils import const, funcs
 
 
 class BeckmannModel(MicrofacetBase):
@@ -11,13 +11,13 @@ class BeckmannModel(MicrofacetBase):
     def d(self, cos_nm):
         if cos_nm < 0:
             return const.ZEROS
-        alpha_2 = sqr(self._alpha)
-        nh_2 = sqr(cos_nm)
-        return torch.exp((nh_2 - 1) / (alpha_2 * nh_2)) / const.PI / alpha_2 / quick_pow(cos_nm, 4)
+        alpha_2 = funcs.sqr(self._alpha)
+        nh_2 = funcs.sqr(cos_nm)
+        return torch.exp((nh_2 - 1) / (alpha_2 * nh_2)) / const.PI / alpha_2 / funcs.quick_pow(cos_nm, 4)
 
     def g1(self, cos_ns):
         c = self._c(cos_ns)
-        c2 = sqr(c)
+        c2 = funcs.sqr(c)
         if c < 1.6:
             return (3.535 * c + 2.181 * c2) / (1.0 + 2.276 * c + 2.577 * c2)
         else:

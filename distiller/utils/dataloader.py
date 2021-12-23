@@ -3,7 +3,7 @@
 """
 from torch.utils.data import DataLoader, TensorDataset
 
-from pkg.model.utils import const
+from distiller.utils import const
 
 
 class Dataloader:

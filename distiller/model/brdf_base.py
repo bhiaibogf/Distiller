@@ -3,7 +3,7 @@ import threading
 import torch
 import torch.nn as nn
 
-from pkg.model.utils import *
+from distiller.utils import const, funcs
 
 
 class BrdfBase(nn.Module):
@@ -25,7 +25,7 @@ class BrdfBase(nn.Module):
             if param.size() == (1,):
                 output += "{} = {}\n".format(name, param.data.item())
             else:
-                output += "{} = {} #{}\n".format(name, param.data.tolist(), to_hex(param.data.tolist()))
+                output += "{} = {} #{}\n".format(name, param.data.tolist(), funcs.to_hex(param.data.tolist()))
         return output
 
     def _eval(self, light, normal, view):
