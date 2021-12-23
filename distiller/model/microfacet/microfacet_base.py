@@ -54,5 +54,8 @@ class MicrofacetBase(BrdfBase):
         return ls
 
     def clamp_(self):
+        self._diffuse_color.data.clamp_(0, 1)
+
         self._alpha.data.clamp_(0, 1)
-        self._eta.data.clamp_(1, 5)
+        self._eta.data.clamp_(1, 10)
+        self._base_color.data.clamp_(0, 1)
