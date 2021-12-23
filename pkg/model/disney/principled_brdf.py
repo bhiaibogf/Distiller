@@ -38,20 +38,20 @@ class PrincipledBrdf(BrdfBase):
     @staticmethod
     def _d_gtr1(cos_nm, alpha):
         if alpha >= 1:
-            return 1 / PI
+            return 1 / const.PI
         a2 = sqr(alpha)
         t = 1 + (a2 - 1) * sqr(cos_nm)
-        return (a2 - 1) / (PI * torch.log(a2) * t)
+        return (a2 - 1) / (const.PI * torch.log(a2) * t)
 
     @staticmethod
     def _d_gtr2(cos_nm, alpha):
         a2 = sqr(alpha)
         t = 1 + (a2 - 1) * sqr(cos_nm)
-        return a2 / (PI * sqr(t))
+        return a2 / (const.PI * sqr(t))
 
     @staticmethod
     def _d_gtr2_aniso(cos_nm, cos_xm, cos_ym, ax, ay):
-        return 1 / (PI * ax * ay * sqr(
+        return 1 / (const.PI * ax * ay * sqr(
             sqr(cos_xm / ax) + sqr(cos_ym / ay) + sqr(cos_nm)
         ))
 
@@ -74,6 +74,9 @@ class PrincipledBrdf(BrdfBase):
     def _eval(self, light, normal, view):
         x = torch.tensor([1.0, 0.0, 0.0])
         y = torch.tensor([0.0, 1.0, 0.0])
+        if const.USE_CUDA:
+            x = x.cuda()
+            y = y.cuda()
         half = f.normalize(light + view, p=2, dim=0)
 
         cos_nl = normal.dot(light)
@@ -90,26 +93,26 @@ class PrincipledBrdf(BrdfBase):
         if cd_lum > 0:
             c_tint = cd_lin / cd_lum
         else:
-            c_tint = torch.zeros(3)
+            c_tint = const.ZEROS
         c_spec0 = torch.lerp(
             self.__specular * .08 * torch.lerp(
-                torch.ones(3),
+                const.ZEROS,
                 c_tint,
                 self.__specular_tint
             ),
             cd_lin,
             self.__metallic
         )
-        c_sheen = torch.lerp(torch.ones(3), c_tint, self.__sheen_tint)
+        c_sheen = torch.lerp(const.ONES, c_tint, self.__sheen_tint)
 
         fresnel_l, fresnel_v = self._schlick(cos_nl), self._schlick(cos_nv)
         fresnel_diffuse_90 = 0.5 + 2 * sqr(cos_hl) * self.__roughness
-        fresnel_diffuse = torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_l) * \
-                          torch.lerp(torch.ones(1), fresnel_diffuse_90, fresnel_v)
+        fresnel_diffuse = torch.lerp(const.ONE, fresnel_diffuse_90, fresnel_l) * \
+                          torch.lerp(const.ONE, fresnel_diffuse_90, fresnel_v)
 
         fresnel_ss_90 = sqr(cos_hl) * self.__roughness
-        fresnel_ss = torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_l) * \
-                     torch.lerp(torch.ones(1), fresnel_ss_90, fresnel_v)
+        fresnel_ss = torch.lerp(const.ONE, fresnel_ss_90, fresnel_l) * \
+                     torch.lerp(const.ONE, fresnel_ss_90, fresnel_v)
         ss = 1.25 * (fresnel_ss * (1 / (cos_nl + cos_nv) - .5) + .5)
 
         # specular
@@ -118,21 +121,21 @@ class PrincipledBrdf(BrdfBase):
         ay = max(.001, quick_pow(self.__roughness, 2) * aspect)
         Ds = self._d_gtr2_aniso(cos_nh, *self._aniso(half, x, y), ax, ay)
         FH = self._schlick(cos_hl)
-        Fs = torch.lerp(c_spec0, torch.ones(3), FH)
+        Fs = torch.lerp(c_spec0, const.ONES, FH)
         Gs = self._g_aniso(cos_nl, *self._aniso(light, x, y), ax, ay) * \
              self._g_aniso(cos_nv, *self._aniso(view, x, y), ax, ay)
         specular = Gs * Fs * Ds
 
         Fsheen = FH * self.__sheen * c_sheen
-        diffuse = ((1 / PI)
+        diffuse = ((1 / const.PI)
                    * torch.lerp(fresnel_diffuse, ss, self.__subsurface)
                    * cd_lin
                    + Fsheen
                    ) * (1 - self.__metallic)
 
         # clear_coat
-        Dr = self._d_gtr1(cos_nh, torch.lerp(torch.tensor([.1]), torch.tensor([.001]), self.__clear_coat_gloss))
-        Fr = torch.lerp(torch.tensor(.04), torch.tensor(1.0), FH)
+        Dr = self._d_gtr1(cos_nh, torch.lerp(const.POINT_ONE, const.POINT_OO_ONE, self.__clear_coat_gloss))
+        Fr = torch.lerp(const.POINT_O_FOUR, const.ONE, FH)
         Gr = self._g(cos_nl, .25) * self._g(cos_nv, .25)
         clear_coat = .25 * self.__clear_coat * Gr * Fr * Dr
 

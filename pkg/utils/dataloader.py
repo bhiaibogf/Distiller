@@ -3,6 +3,8 @@
 """
 from torch.utils.data import DataLoader, TensorDataset
 
+from pkg.model.utils import const
+
 
 class Dataloader:
     def __init__(self, reader, batch_size):
@@ -13,8 +15,17 @@ class Dataloader:
         self.__reader = reader
         self.__batch_size = batch_size
 
-        self.__train_dataset = TensorDataset(*reader.get_train_data())
-        self.__valid_dataset = TensorDataset(*reader.get_valid_data())
+        x, y = reader.get_train_data()
+        if const.USE_CUDA:
+            x = x.cuda()
+            y = y.cuda()
+        self.__train_dataset = TensorDataset(x, y)
+
+        x, y = reader.get_valid_data()
+        if const.USE_CUDA:
+            x = x.cuda()
+            y = y.cuda()
+        self.__valid_dataset = TensorDataset(x, y)
 
     def get_data(self):
         """

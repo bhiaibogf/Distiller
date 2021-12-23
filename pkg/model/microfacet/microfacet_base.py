@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 from pkg.model.brdf_base import BrdfBase
-from pkg.model.utils import quick_pow, mon2lin, sqr, PI
+from pkg.model.utils import *
 
 
 class MicrofacetBase(BrdfBase):
@@ -50,7 +50,7 @@ class MicrofacetBase(BrdfBase):
         ls = mon2lin(self._base_color)
         ls *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
         ls /= 4 * normal.dot(light) * normal.dot(view)
-        ls += mon2lin(self._diffuse_color) / PI
+        ls += mon2lin(self._diffuse_color) / const.PI
         return ls
 
     def clamp_(self):

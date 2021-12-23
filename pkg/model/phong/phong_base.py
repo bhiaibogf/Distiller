@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from pkg.model.brdf_base import BrdfBase
-from pkg.model.utils import PI
+from pkg.model.utils import const
 
 
 class PhongBase(BrdfBase):
@@ -19,9 +19,9 @@ class PhongBase(BrdfBase):
         return 1
 
     def _eval(self, light, normal, view):
-        intensity = 1 / PI / normal.dot(light)
+        intensity = 1 / const.PI / normal.dot(light)
         # diffuse
-        l_d = self._kd * intensity * torch.max(torch.zeros(1), normal.dot(light))
+        l_d = self._kd * intensity * torch.max(const.ZERO, normal.dot(light))
         # specular
         l_s = self._ks * intensity * torch.pow(self.specular(light, normal, view), self._alpha)
         return l_s + l_d

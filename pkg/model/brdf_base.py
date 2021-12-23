@@ -3,7 +3,7 @@ import threading
 import torch
 import torch.nn as nn
 
-from pkg.model.utils import to_hex
+from pkg.model.utils import *
 
 
 class BrdfBase(nn.Module):
@@ -29,23 +29,28 @@ class BrdfBase(nn.Module):
         return output
 
     def _eval(self, light, normal, view):
-        return torch.ones(3)
+        return const.ONES
 
     def _handler(self, x, y, i):
         light = x[0]
         normal = torch.tensor([0.0, 0.0, 1.0])
+        if const.USE_CUDA:
+            normal = normal.cuda()
         view = x[1]
         y[i] = self._eval(light, normal, view)
 
     def forward(self, inputs):
         data_size = len(inputs)
         result = torch.empty(data_size, 3)
-        threads = []
-        for i in range(data_size):
-            threads.append(threading.Thread(target=self._handler, args=(
-                inputs[i], result, i)))
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        if const.USE_CUDA:
+            for i in range(data_size):
+                self._handler(inputs[i], result, i)
+        else:
+            threads = []
+            for i in range(data_size):
+                threads.append(threading.Thread(target=self._handler, args=(inputs[i], result, i)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
         return result

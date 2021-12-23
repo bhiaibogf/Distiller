@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 import pandas as pd
 import torch
 
+from pkg.model.utils import const
 from pkg.utils.sampler import Sampler
 
 
@@ -45,6 +46,8 @@ class ModelReader(Reader):
         view = Sampler.hemisphere(self._train_data_size)
         inputs = torch.stack((light, view), 1)
         assert inputs.shape == (self._train_data_size, 2, 3)
+        if const.USE_CUDA:
+            inputs = inputs.cuda()
 
         return inputs, self._get_data(inputs)
 
@@ -52,6 +55,9 @@ class ModelReader(Reader):
         light = Sampler.cos_hemisphere(self._train_data_size)
         view = Sampler.hemisphere(self._train_data_size)
         inputs = torch.stack((light, view), 1)
+        if const.USE_CUDA:
+            inputs = inputs.cuda()
+
         return inputs, self._get_data(inputs)
 
 

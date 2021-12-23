@@ -1,6 +1,7 @@
 import torch
 
-from pkg.model.microfacet.microfacet_base import MicrofacetBase, sqr, PI
+from pkg.model.microfacet.microfacet_base import MicrofacetBase
+from pkg.model.utils import *
 
 
 class GgxModel(MicrofacetBase):
@@ -9,7 +10,7 @@ class GgxModel(MicrofacetBase):
 
     def d(self, cos_nm):
         alpha_2 = sqr(self._alpha)
-        return alpha_2 / PI / sqr(torch.lerp(torch.tensor([1.0]), alpha_2, sqr(cos_nm)))
+        return alpha_2 / const.PI / sqr(torch.lerp(torch.tensor([1.0]), alpha_2, sqr(cos_nm)))
 
     def g1(self, cos_ns):
         return 2 * cos_ns / (cos_ns + torch.sqrt(
