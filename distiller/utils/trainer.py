@@ -2,6 +2,7 @@
 用于训练模型的模块
 """
 import math
+import os
 
 import matplotlib.pyplot as plt
 import torch
@@ -24,6 +25,8 @@ class Trainer:
 
         self.__losses = []
         self.__accuracies = []
+        self.__psnrs = []
+        self.__brdf_max = 0
 
     def __plot(self):
         fig, axes_loss = plt.subplots()
@@ -49,7 +52,20 @@ class Trainer:
 
             fig.legend(loc='center right',
                        bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
+        if self.__psnrs:
+            axes_accuracy = axes_loss.twinx()
+            axes_accuracy.plot(
+                range(len(self.__psnrs)), self.__psnrs,
+                label='psnr',
+                color='red'
+            )
+            axes_accuracy.set_ylabel('psnr({:.4})'.format(self.__brdf_max), color='red')
 
+            fig.legend(loc='center right',
+                       bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
+
+        if not os.path.exists('./img'):
+            os.makedirs('./img')
         plt.savefig('img/' + self.__model.__class__.__name__ + '.png')
         plt.draw()
         plt.show()
@@ -91,17 +107,17 @@ class Trainer:
 
             # 测试
             losses, cnt = 0, 0
-            max_brdf = 0
             with torch.no_grad():
                 for x, y in self.__valid_dataloader:
                     losses += self.__loss(x, y) * len(y)
                     cnt += len(y)
                     # max_brdf = max(max_brdf, torch.max(y))
-                    max_brdf = max(max_brdf, torch.max(self.__cos(x, y)))
+                    self.__brdf_max = max(self.__brdf_max, torch.max(self.__cos(x, y)))
             loss = losses / cnt
-            psnr = 10 * math.log10(max_brdf * max_brdf / loss)
-            print('epoch {} :\nloss : {}\npsnr : {}({})'.format(epoch, loss, psnr, max_brdf))
+            psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
+            print('epoch {} :\nloss : {}\npsnr : {}({})'.format(epoch, loss, psnr, self.__brdf_max))
             self.__losses.append(loss)
+            self.__psnrs.append(psnr)
             # self.__accuracies.append(1 - loss)
             print(self.__model)
             if self.__model.lr:

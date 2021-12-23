@@ -1,3 +1,5 @@
+import os
+
 from distiller.model import *
 from distiller.utils import Dataloader, Trainer, ModelReader, const
 
@@ -22,7 +24,10 @@ def main():
         model = model.cuda()
 
     trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
-    trainer.train(128)
+    trainer.train(32)
+
+    if not os.path.exists('./params'):
+        os.makedirs('./params')
     with open('params/' + model.__class__.__name__ + '.txt', 'a') as file:
         file.write(model.__str__() + '\n')
 
