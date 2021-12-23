@@ -1,30 +1,33 @@
-import math
-
 import torch
 import torch.nn.functional as f
+
+from distiller.utils import const
 
 
 class Sampler:
     @staticmethod
+    def __get_two_rand(n):
+        return torch.rand(n, device='cuda' if const.USE_CUDA else 'cpu'), \
+               torch.rand(n, device='cuda' if const.USE_CUDA else 'cpu')
+
+    @staticmethod
     def disk(n):
-        xi_1 = torch.rand(n)
-        xi_2 = torch.rand(n)
+        xi_1, xi_2 = Sampler.__get_two_rand(n)
 
         r = torch.sqrt(xi_1)
-        theta = 2 * math.pi * xi_2
+        theta = 2 * const.PI * xi_2
 
         x, y = r * torch.cos(theta), r * torch.sin(theta)
         return torch.stack((x, y), 1)
 
     @staticmethod
     def sphere(n):
-        xi_1 = torch.rand(n)
-        xi_2 = torch.rand(n)
+        xi_1, xi_2 = Sampler.__get_two_rand(n)
 
         cos_theta = 1 - 2 * xi_1
         sin_theta = torch.sqrt(1 - cos_theta * cos_theta)
 
-        phi = 2 * math.pi * xi_2
+        phi = 2 * const.PI * xi_2
         cos_phi = torch.cos(phi)
         sin_phi = torch.sin(phi)
 
@@ -41,13 +44,12 @@ class Sampler:
 
     @staticmethod
     def hemisphere(n):
-        xi_1 = torch.rand(n)
-        xi_2 = torch.rand(n)
+        xi_1, xi_2 = Sampler.__get_two_rand(n)
 
         cos_theta = 1 - xi_1
         sin_theta = torch.sqrt(1 - cos_theta * cos_theta)
 
-        phi = 2 * math.pi * xi_2
+        phi = 2 * const.PI * xi_2
         cos_phi = torch.cos(phi)
         sin_phi = torch.sin(phi)
 
@@ -56,13 +58,12 @@ class Sampler:
 
     @staticmethod
     def cos_hemisphere(n):
-        xi_1 = torch.rand(n)
-        xi_2 = torch.rand(n)
+        xi_1, xi_2 = Sampler.__get_two_rand(n)
 
         sin_theta = torch.sqrt(xi_1)
         cos_theta = torch.sqrt(1 - xi_1)
 
-        phi = 2 * math.pi * xi_2
+        phi = 2 * const.PI * xi_2
         cos_phi = torch.cos(phi)
         sin_phi = torch.sin(phi)
 
