@@ -43,6 +43,7 @@ class BrdfBase(nn.Module):
         data_size = len(inputs)
         result = torch.empty(data_size, 3)
         if const.USE_CUDA:
+            result = result.cuda()
             for i in range(data_size):
                 self._handler(inputs[i], result, i)
         else:
