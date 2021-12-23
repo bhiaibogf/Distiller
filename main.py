@@ -1,7 +1,7 @@
 import os
 
 from distiller.model import *
-from distiller.utils import Dataloader, Trainer, ModelReader, const
+from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2
 
 
 def main():
@@ -11,18 +11,26 @@ def main():
         const.USE_CUDA = False
         print('use cpu')
 
-    # source_model = PrincipledBrdf(0.05, 0.7438)
-    source_model = PrincipledBrdf(0.8, 0.2)
-    # source_model = PhongModel()
-    if const.USE_CUDA:
-        source_model = source_model.cuda()
-    reader = ModelReader(8192, 2048, source_model)
-    # reader = BsdfReader2('BSDF/blue-metallic-paint.txt', 8192, 2048)
-    dataloader = Dataloader(reader, 64)
+    train_data_size = 8192
+    valid_data_size = 2048
+    batch_size = 64
 
     # for test
-    # reader = ModelReader(80, 20, source_model)
-    # dataloader = Dataloader(reader, 4)
+    # train_data_size = 80
+    # valid_data_size = 20
+    # batch_size = 4
+
+    # source_model = PrincipledBrdf(0.05, 0.7438)
+    # source_model = PrincipledBrdf(0.8, 0.2)
+    # source_model = PhongModel()
+    # if const.USE_CUDA:
+    #     source_model = source_model.cuda()
+    # reader = ModelReader(train_data_size, valid_data_size, source_model)
+
+    source_model = Merl('blue-metallic-paint')
+    reader = BsdfReader2(f'BSDF/{source_model}.txt', train_data_size, valid_data_size)
+
+    dataloader = Dataloader(reader, batch_size)
 
     model = GgxModel()
     if const.USE_CUDA:
