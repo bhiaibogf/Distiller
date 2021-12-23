@@ -17,7 +17,7 @@ class Trainer:
         """
         :param model: 需要训练的模型
         :param train_dataloader: 训练集
-        :param valid_dataloader: 测试集
+        :param valid_dataloader: 验证集
         """
         self.__model = model
         self.__train_dataloader = train_dataloader
@@ -28,11 +28,15 @@ class Trainer:
         self.__psnrs = []
         self.__brdf_max = 0
 
-    def __plot(self):
+    def plot(self, filename):
+        """
+        画训练时的 loss/psnr 变化
+        """
         fig, axes_loss = plt.subplots()
         fig.suptitle('training steps')
         fig.subplots_adjust(right=0.85)
 
+        # loss
         axes_loss.plot(
             range(len(self.__losses)), self.__losses,
             label='loss',
@@ -41,6 +45,7 @@ class Trainer:
         axes_loss.set_xlabel('epochs')
         axes_loss.set_ylabel('loss', color='green')
 
+        # acc
         if self.__accuracies:
             axes_accuracy = axes_loss.twinx()
             axes_accuracy.plot(
@@ -50,23 +55,22 @@ class Trainer:
             )
             axes_accuracy.set_ylabel('accuracy', color='red')
 
-            fig.legend(loc='center right',
-                       bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
+            fig.legend(loc='center right', bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
+
+        # psnr
         if self.__psnrs:
-            axes_accuracy = axes_loss.twinx()
-            axes_accuracy.plot(
+            axes_psnr = axes_loss.twinx()
+            axes_psnr.plot(
                 range(len(self.__psnrs)), self.__psnrs,
                 label='psnr',
                 color='red'
             )
-            axes_accuracy.set_ylabel('psnr({:.4})'.format(self.__brdf_max), color='red')
+            axes_psnr.set_ylabel(f'psnr({self.__brdf_max:.4})', color='red')
 
-            fig.legend(loc='center right',
-                       bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
+            fig.legend(loc='center right', bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
 
-        if not os.path.exists('./img'):
-            os.makedirs('./img')
-        plt.savefig('img/' + self.__model.__class__.__name__ + '.png')
+        plt.savefig(filename)
+
         plt.draw()
         plt.show()
 
@@ -95,34 +99,35 @@ class Trainer:
 
     def train(self, epochs):
         """
-        使用训练集与测试机训练模型
+        使用训练集与验证集训练模型
 
         :param epochs: 训练遍数
-        :return: None
         """
         for epoch in range(epochs):
             # 训练
             for x, y in self.__train_dataloader:
                 self.__loss(x, y, True)
 
-            # 测试
+            # 验证
             losses, cnt = 0, 0
             with torch.no_grad():
                 for x, y in self.__valid_dataloader:
                     losses += self.__loss(x, y) * len(y)
                     cnt += len(y)
-                    # max_brdf = max(max_brdf, torch.max(y))
+                    # self.__brdf_max = max(self.__brdf_max, torch.max(y))
                     self.__brdf_max = max(self.__brdf_max, torch.max(self.__cos(x, y)))
             loss = losses / cnt
-            psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
-            print('epoch {} :\nloss : {}\npsnr : {}({})'.format(epoch, loss, psnr, self.__brdf_max))
             self.__losses.append(loss)
+
+            psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
             self.__psnrs.append(psnr)
-            # self.__accuracies.append(1 - loss)
+
+            print(f'epoch {epoch} :\nloss : {loss}\npsnr : {psnr}({self.__brdf_max})')
+
             print(self.__model)
+
             if self.__model.lr:
                 self.__model.lr.step()
-        self.__plot()
 
     def pre(self, x):
         """
