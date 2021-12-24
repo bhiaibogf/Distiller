@@ -11,8 +11,8 @@ def main():
         const.USE_CUDA = False
         print('use cpu')
 
-    train_data_size = 8192
-    valid_data_size = 2048
+    train_data_size = 81920
+    valid_data_size = 10240
     batch_size = 1024
 
     # for test
@@ -21,14 +21,14 @@ def main():
     # batch_size = 4
 
     # source_model = PrincipledBrdf(0.05, 0.7438)
-    # source_model = PrincipledBrdf(0.8, 0.2)
+    source_model = PrincipledBrdf(0.8, 0.2)
     # source_model = PhongModel()
-    # if const.USE_CUDA:
-    #     source_model = source_model.cuda()
-    # reader = ModelReader(train_data_size, valid_data_size, source_model)
+    if const.USE_CUDA:
+        source_model = source_model.cuda()
+    reader = ModelReader(train_data_size, valid_data_size, source_model)
 
-    source_model = Merl('blue-metallic-paint')
-    reader = BsdfReader2(f'BSDF/{source_model}.txt', train_data_size, valid_data_size)
+    # source_model = Merl('blue-metallic-paint')
+    # reader = BsdfReader2(f'BSDF/{source_model}.txt', train_data_size, valid_data_size)
 
     dataloader = Dataloader(reader, batch_size)
 

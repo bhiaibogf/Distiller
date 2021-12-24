@@ -69,7 +69,76 @@ class PrincipledBrdf(BrdfBase):
 
     @staticmethod
     def _aniso(base, x, y):
-        return base.dot(x), base.dot(y)
+        if const.USE_VEC:
+            return funcs.batch_vec_dot(base, x), funcs.batch_vec_dot(base, y)
+        else:
+            return base.dot(x), base.dot(y)
+
+    def _shade(self, light, normal, view):
+        x = torch.tensor([[1.0, 0.0, 0.0]])
+        y = torch.tensor([[0.0, 1.0, 0.0]])
+        if const.USE_CUDA:
+            x = x.cuda()
+            y = y.cuda()
+        half = f.normalize(light + view, p=2, dim=1)
+
+        cos_nl = funcs.batch_vec_dot(normal, light)
+        cos_nv = funcs.batch_vec_dot(normal, view)
+        cos_nh = funcs.batch_vec_dot(normal, half)
+        cos_hl = funcs.batch_vec_dot(half, light)
+
+        cd_lin = funcs.mon2lin(self.__base_color)
+        cd_lum = .3 * cd_lin[0] + .6 * cd_lin[1] + .1 * cd_lin[2]
+
+        if cd_lum > 0:
+            c_tint = cd_lin / cd_lum
+        else:
+            c_tint = const.ZEROS
+        c_spec0 = torch.lerp(
+            self.__specular * .08 * torch.lerp(
+                const.ZEROS,
+                c_tint,
+                self.__specular_tint
+            ),
+            cd_lin,
+            self.__metallic
+        )
+        c_sheen = torch.lerp(const.ONES, c_tint, self.__sheen_tint)
+
+        fresnel_l, fresnel_v = self._schlick(cos_nl), self._schlick(cos_nv)
+        fresnel_diffuse_90 = 0.5 + 2 * funcs.sqr(cos_hl) * self.__roughness
+        fresnel_diffuse = torch.lerp(const.ONE, fresnel_diffuse_90, fresnel_l) * \
+                          torch.lerp(const.ONE, fresnel_diffuse_90, fresnel_v)
+
+        fresnel_ss_90 = funcs.sqr(cos_hl) * self.__roughness
+        fresnel_ss = torch.lerp(const.ONE, fresnel_ss_90, fresnel_l) * \
+                     torch.lerp(const.ONE, fresnel_ss_90, fresnel_v)
+        ss = 1.25 * (fresnel_ss * (1 / (cos_nl + cos_nv) - .5) + .5)
+
+        # specular
+        aspect = torch.sqrt(1 - self.__anisotropic * .9)
+        ax = torch.max(const.POINT_OO_ONE, funcs.quick_pow(self.__roughness, 2) / aspect)
+        ay = torch.max(const.POINT_OO_ONE, funcs.quick_pow(self.__roughness, 2) * aspect)
+        Ds = self._d_gtr2_aniso(cos_nh, *self._aniso(half, x, y), ax, ay)
+        FH = self._schlick(cos_hl)
+        Fs = funcs.batch_lerp(c_spec0, const.ONES, FH)
+        Gs = self._g_aniso(cos_nl, *self._aniso(light, x, y), ax, ay) * \
+             self._g_aniso(cos_nv, *self._aniso(view, x, y), ax, ay)
+        specular = funcs.batch_scale_batch(Gs * Ds, Fs)
+
+        Fsheen = funcs.batch_scale(FH, self.__sheen * c_sheen)
+        diffuse = ((1 / const.PI)
+                   * funcs.batch_scale(torch.lerp(fresnel_diffuse, ss, self.__subsurface), cd_lin)
+                   + Fsheen
+                   ) * (1 - self.__metallic)
+
+        # clear_coat
+        Dr = self._d_gtr1(cos_nh, torch.lerp(const.POINT_ONE, const.POINT_OO_ONE, self.__clear_coat_gloss))
+        Fr = torch.lerp(const.POINT_O_FOUR, const.ONE, FH)
+        Gr = self._g(cos_nl, .25) * self._g(cos_nv, .25)
+        clear_coat = .25 * self.__clear_coat * Gr * Fr * Dr
+
+        return (diffuse.T + specular.T + clear_coat).T
 
     def _eval(self, light, normal, view):
         x = torch.tensor([1.0, 0.0, 0.0])

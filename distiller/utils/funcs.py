@@ -45,3 +45,15 @@ def batch_scale(num, vec):
     :parameter: vec ([dim])
     """
     return (num.unsqueeze(1) @ vec.unsqueeze(0)).squeeze()
+
+
+def batch_scale_batch(num, vecs):
+    """
+    :parameter: num ([batch])
+    :parameter: vecs ([batch, dim])
+    """
+    return (vecs.T * num).T
+
+
+def batch_lerp(a, b, x):
+    return batch_scale(1 - x, a) + batch_scale(x, b)
