@@ -13,7 +13,7 @@ def main():
 
     train_data_size = 8192
     valid_data_size = 2048
-    batch_size = 64
+    batch_size = 1024
 
     # for test
     # train_data_size = 80
@@ -32,7 +32,7 @@ def main():
 
     dataloader = Dataloader(reader, batch_size)
 
-    model = GgxModel()
+    model = BlinnPhongModel()
     if const.USE_CUDA:
         model = model.cuda()
 

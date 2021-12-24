@@ -28,8 +28,11 @@ class BrdfBase(nn.Module):
                 output += "{} = {} #{}\n".format(name, param.data.tolist(), funcs.to_hex(param.data.tolist()))
         return output
 
+    def _shade(self, light, normal, view):
+        pass
+
     def _eval(self, light, normal, view):
-        return const.ONES
+        pass
 
     def _handler(self, x, y, i):
         light = x[0]
@@ -40,18 +43,26 @@ class BrdfBase(nn.Module):
         y[i] = self._eval(light, normal, view)
 
     def forward(self, inputs):
-        data_size = len(inputs)
-        result = torch.empty(data_size, 3)
-        if const.USE_CUDA:
-            result = result.cuda()
-            for i in range(data_size):
-                self._handler(inputs[i], result, i)
+        if const.USE_VEC:
+            light = inputs[:, 0:1, :].squeeze()
+            normal = torch.tensor([0.0, 0.0, 1.0]).unsqueeze(0)
+            if const.USE_CUDA:
+                normal = normal.cuda()
+            view = inputs[:, 1:, :].squeeze()
+            return self._shade(light, normal, view)
         else:
-            threads = []
-            for i in range(data_size):
-                threads.append(threading.Thread(target=self._handler, args=(inputs[i], result, i)))
-            for thread in threads:
-                thread.start()
-            for thread in threads:
-                thread.join()
-        return result
+            data_size = len(inputs)
+            result = torch.empty(data_size, 3)
+            if const.USE_CUDA:
+                result = result.cuda()
+                for i in range(data_size):
+                    self._handler(inputs[i], result, i)
+            else:
+                threads = []
+                for i in range(data_size):
+                    threads.append(threading.Thread(target=self._handler, args=(inputs[i], result, i)))
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+                return result

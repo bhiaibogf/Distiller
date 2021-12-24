@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from distiller.model.brdf_base import BrdfBase
-from distiller.utils import const
+from distiller.utils import const, funcs
 
 
 class PhongBase(BrdfBase):
@@ -16,7 +16,17 @@ class PhongBase(BrdfBase):
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
 
     def specular(self, light, normal, view):
-        return 1
+        pass
+
+    def _shade(self, light, normal, view):
+        intensity = 1 / const.PI / funcs.batch_vec_dot(normal, light)
+        # diffuse
+        l_d = funcs.batch_scale(intensity * torch.max(const.ZERO, funcs.batch_vec_dot(normal, light)),
+                                self._kd)
+        # specular
+        l_s = funcs.batch_scale(intensity * torch.pow(self.specular(light, normal, view), self._alpha),
+                                self._ks)
+        return l_s + l_d
 
     def _eval(self, light, normal, view):
         intensity = 1 / const.PI / normal.dot(light)
