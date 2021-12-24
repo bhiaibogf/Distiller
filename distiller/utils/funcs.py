@@ -36,7 +36,7 @@ def to_hex(color):
 
 
 def batch_vec_dot(a, b):
-    return torch.tensordot(a, b, dims=([1], [1])).squeeze()
+    return torch.sum(a * b, dim=1)
 
 
 def batch_scale(num, vec):
