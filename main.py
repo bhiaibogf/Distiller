@@ -32,7 +32,7 @@ def main():
 
     dataloader = Dataloader(reader, batch_size)
 
-    model = BlinnPhongModel()
+    model = PhongModel()
     if const.USE_CUDA:
         model = model.cuda()
 
