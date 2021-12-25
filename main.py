@@ -1,7 +1,7 @@
 import os
 
 from distiller.model import *
-from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2, timer
+from distiller.utils import Dataloader, Trainer, ModelReader, config, timer
 
 
 def sample():
@@ -17,7 +17,7 @@ def sample():
     # source_model = PrincipledBrdf(0.05, 0.7438)
     source_model = PrincipledBrdf(0.8, 0.2)
     # source_model = PhongModel()
-    if const.USE_CUDA:
+    if config.USE_CUDA:
         source_model = source_model.cuda()
     reader = ModelReader(train_data_size, valid_data_size, source_model)
 
@@ -31,7 +31,7 @@ def sample():
 
 def train(dataloader):
     target_model = GgxModel()
-    if const.USE_CUDA:
+    if config.USE_CUDA:
         target_model = target_model.cuda()
 
     trainer = Trainer(target_model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
@@ -75,11 +75,11 @@ def main():
     target_model, trainer = train(dataloader)
     timer.update_time('training')
 
-    if const.WRITE_FILE:
+    if config.WRITE_FILE:
         print('output...')
         output(source_model, target_model, trainer)
         timer.update_time('output')
-    elif const.SHOW_IMG:
+    elif config.SHOW_IMG:
         trainer.plot(None)
 
 

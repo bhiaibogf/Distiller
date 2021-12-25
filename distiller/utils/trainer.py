@@ -2,12 +2,11 @@
 用于训练模型的模块
 """
 import math
-import os
 
 import matplotlib.pyplot as plt
 import torch
 
-from distiller.utils import const
+from distiller.utils import config
 
 
 class Trainer:
@@ -73,10 +72,10 @@ class Trainer:
 
         plt.draw()
 
-        if const.WRITE_FILE:
+        if config.WRITE_FILE:
             plt.savefig(filename)
 
-        if const.SHOW_IMG:
+        if config.SHOW_IMG:
             plt.show()
 
     @staticmethod
@@ -127,14 +126,14 @@ class Trainer:
             psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
             self.__psnrs.append(psnr)
 
-            if const.SHOW_LOSS:
+            if config.SHOW_LOSS:
                 print(f'epoch {epoch}\nloss : {loss:.4}\npsnr : {psnr:.4}({self.__brdf_max:.4})')
-                if not const.SHOW_MODEL:
+                if not config.SHOW_MODEL:
                     print('')
             else:
                 print(f'epoch {epoch}')
 
-            if const.SHOW_MODEL:
+            if config.SHOW_MODEL:
                 print(self.__model)
 
             if self.__model.lr:

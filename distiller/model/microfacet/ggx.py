@@ -1,7 +1,7 @@
 import torch
 
 from distiller.model.microfacet.microfacet_base import MicrofacetBase
-from distiller.utils import const, funcs
+from distiller.utils import const, config, funcs
 
 
 class GgxModel(MicrofacetBase):
@@ -17,7 +17,7 @@ class GgxModel(MicrofacetBase):
             torch.lerp(funcs.sqr(self._alpha), const.ONE, funcs.sqr(cos_ns))))
 
     def g(self, light, normal, view):
-        if const.USE_VEC:
+        if config.USE_VEC:
             return self.g1(funcs.batch_vec_dot(normal, view)) * self.g1(funcs.batch_vec_dot(normal, light))
         else:
             return self.g1(normal.dot(view)) * self.g1(normal.dot(light))

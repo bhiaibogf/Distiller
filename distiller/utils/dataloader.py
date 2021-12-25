@@ -3,7 +3,7 @@
 """
 from torch.utils.data import DataLoader, TensorDataset
 
-from distiller.utils import const
+from distiller.utils import config
 
 
 class Dataloader:
@@ -16,13 +16,13 @@ class Dataloader:
         self.__batch_size = batch_size
 
         x, y = reader.get_train_data()
-        if const.USE_CUDA:
+        if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
         self.__train_dataset = TensorDataset(x, y)
 
         x, y = reader.get_valid_data()
-        if const.USE_CUDA:
+        if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
         self.__valid_dataset = TensorDataset(x, y)

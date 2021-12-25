@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 from distiller.model.brdf_base import BrdfBase
-from distiller.utils import const, funcs
+from distiller.utils import const, config, funcs
 
 
 class PrincipledBrdf(BrdfBase):
@@ -69,7 +69,7 @@ class PrincipledBrdf(BrdfBase):
 
     @staticmethod
     def _aniso(base, x, y):
-        if const.USE_VEC:
+        if config.USE_VEC:
             return funcs.batch_vec_dot(base, x), funcs.batch_vec_dot(base, y)
         else:
             return base.dot(x), base.dot(y)
@@ -77,7 +77,7 @@ class PrincipledBrdf(BrdfBase):
     def _shade(self, light, normal, view):
         x = torch.tensor([[1.0, 0.0, 0.0]])
         y = torch.tensor([[0.0, 1.0, 0.0]])
-        if const.USE_CUDA:
+        if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
         half = f.normalize(light + view, p=2, dim=1)
@@ -143,7 +143,7 @@ class PrincipledBrdf(BrdfBase):
     def _eval(self, light, normal, view):
         x = torch.tensor([1.0, 0.0, 0.0])
         y = torch.tensor([0.0, 1.0, 0.0])
-        if const.USE_CUDA:
+        if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
         half = f.normalize(light + view, p=2, dim=0)

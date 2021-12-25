@@ -3,7 +3,7 @@ import threading
 import torch
 import torch.nn as nn
 
-from distiller.utils import const, funcs
+from distiller.utils import config, funcs
 
 
 class BrdfBase(nn.Module):
@@ -38,23 +38,23 @@ class BrdfBase(nn.Module):
     def _handler(self, x, y, i):
         light = x[0]
         normal = torch.tensor([0.0, 0.0, 1.0])
-        if const.USE_CUDA:
+        if config.USE_CUDA:
             normal = normal.cuda()
         view = x[1]
         y[i] = self._eval(light, normal, view)
 
     def forward(self, inputs):
-        if const.USE_VEC:
+        if config.USE_VEC:
             light = inputs[:, 0:1, :].squeeze()
             normal = torch.tensor([0.0, 0.0, 1.0]).unsqueeze(0)
-            if const.USE_CUDA:
+            if config.USE_CUDA:
                 normal = normal.cuda()
             view = inputs[:, 1:, :].squeeze()
             return self._shade(light, normal, view)
         else:
             data_size = len(inputs)
             result = torch.empty(data_size, 3)
-            if const.USE_CUDA:
+            if config.USE_CUDA:
                 result = result.cuda()
                 for i in range(data_size):
                     self._handler(inputs[i], result, i)

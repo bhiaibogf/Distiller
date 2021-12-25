@@ -1,14 +1,14 @@
 import torch
 import torch.nn.functional as f
 
-from distiller.utils import const
+from distiller.utils import const, config
 
 
 class Sampler:
     @staticmethod
     def __get_two_rand(n):
-        return torch.rand(n, device='cuda' if const.USE_CUDA else 'cpu'), \
-               torch.rand(n, device='cuda' if const.USE_CUDA else 'cpu')
+        return torch.rand(n, device='cuda' if config.USE_CUDA else 'cpu'), \
+               torch.rand(n, device='cuda' if config.USE_CUDA else 'cpu')
 
     @staticmethod
     def disk(n):

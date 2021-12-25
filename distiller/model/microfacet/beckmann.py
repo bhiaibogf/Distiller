@@ -1,7 +1,7 @@
 import torch
 
 from distiller.model.microfacet.microfacet_base import MicrofacetBase
-from distiller.utils import const, funcs
+from distiller.utils import const, config, funcs
 
 
 class BeckmannModel(MicrofacetBase):
@@ -21,7 +21,7 @@ class BeckmannModel(MicrofacetBase):
         return (3.535 * c + 2.181 * c2) / (1.0 + 2.276 * c + 2.577 * c2)
 
     def g(self, light, normal, view):
-        if const.USE_VEC:
+        if config.USE_VEC:
             return self.g1(funcs.batch_vec_dot(normal, view)) * self.g1(funcs.batch_vec_dot(normal, light))
         else:
             return self.g1(normal.dot(view)) * self.g1(normal.dot(light))
