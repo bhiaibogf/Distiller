@@ -23,9 +23,10 @@ class BrdfBase(nn.Module):
             while name[0] == '_':
                 name = name[1:]
             if param.size() == (1,):
-                output += "{} = {}\n".format(name, param.data.item())
+                output += "{} = {:.4}\n".format(name, param.data.item())
             else:
-                output += "{} = {} #{}\n".format(name, param.data.tolist(), funcs.to_hex(param.data.tolist()))
+                output += "{} = [{:.4}, {:.4}, {:.4}] #{}\n".format(name, *param.data.tolist(),
+                                                                    funcs.to_hex(param.data.tolist()))
         return output
 
     def _shade(self, light, normal, view):

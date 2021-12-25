@@ -5,8 +5,8 @@ from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2
 
 
 def sample():
-    train_data_size = 81920
-    valid_data_size = 10240
+    train_data_size = 8192
+    valid_data_size = 1024
     batch_size = 1024
 
     # for test
@@ -58,7 +58,8 @@ def output(source_model, target_model, trainer):
     with open(f'{params_dir}/{source_model_name}_{target_model_name}.txt', 'a') as file:
         file.write(f'{cnt}:\n')
         file.write(f'source:\n{source_model.__str__()}\n')
-        file.write(f'target:\n{target_model.__str__()}\n\n')
+        file.write(f'target:\n{target_model.__str__()}\n')
+        file.write(f'{trainer}\n')
 
 
 def main():

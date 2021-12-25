@@ -122,7 +122,7 @@ class Trainer:
             psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
             self.__psnrs.append(psnr)
 
-            print(f'epoch {epoch} :\nloss : {loss}\npsnr : {psnr}({self.__brdf_max})')
+            print(f'epoch {epoch} :\nloss : {loss:.4}\npsnr : {psnr:.4}({self.__brdf_max:.4})')
 
             print(self.__model)
 
@@ -137,3 +137,8 @@ class Trainer:
         :return: 预测结果
         """
         return self.__model(x).detach()
+
+    def __str__(self):
+        return f'train on {len(self.__train_dataloader.dataset)}({self.__train_dataloader.batch_size}) samples for 32 epochs\n' \
+               f'test on {len(self.__valid_dataloader.dataset)}({self.__valid_dataloader.batch_size}) samples\n' \
+               f'get loss: {self.__losses[-1]:.4} psnr: {self.__psnrs[-1]:.4}({self.__brdf_max:.4})\n'
