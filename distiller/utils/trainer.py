@@ -7,6 +7,8 @@ import os
 import matplotlib.pyplot as plt
 import torch
 
+from distiller.utils import const
+
 
 class Trainer:
     """
@@ -69,10 +71,13 @@ class Trainer:
 
             fig.legend(loc='center right', bbox_to_anchor=(1, 0.5), bbox_transform=axes_loss.transAxes)
 
-        plt.savefig(filename)
-
         plt.draw()
-        plt.show()
+
+        if const.WRITE_FILE:
+            plt.savefig(filename)
+
+        if const.SHOW_IMG:
+            plt.show()
 
     @staticmethod
     def __cos(x, y):
@@ -122,9 +127,15 @@ class Trainer:
             psnr = 10 * math.log10(self.__brdf_max * self.__brdf_max / loss)
             self.__psnrs.append(psnr)
 
-            print(f'epoch {epoch} :\nloss : {loss:.4}\npsnr : {psnr:.4}({self.__brdf_max:.4})')
+            if const.SHOW_LOSS:
+                print(f'epoch {epoch}\nloss : {loss:.4}\npsnr : {psnr:.4}({self.__brdf_max:.4})')
+                if not const.SHOW_MODEL:
+                    print('')
+            else:
+                print(f'epoch {epoch}')
 
-            print(self.__model)
+            if const.SHOW_MODEL:
+                print(self.__model)
 
             if self.__model.lr:
                 self.__model.lr.step()

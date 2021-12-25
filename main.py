@@ -50,28 +50,37 @@ def output(source_model, target_model, trainer):
     cnt = 0
     while os.path.exists(f'{pic_dir}/{source_model_name}_{target_model_name}_{cnt}.png'):
         cnt += 1
-    trainer.plot(f'{pic_dir}/{source_model_name}_{target_model_name}_{cnt}.png')
+    pic_file = f'{pic_dir}/{source_model_name}_{target_model_name}_{cnt}.png'
+    trainer.plot(pic_file)
+    print('drawn to ' + pic_file)
 
     params_dir = './params'
     if not os.path.exists(params_dir):
         os.makedirs(params_dir)
-    with open(f'{params_dir}/{source_model_name}_{target_model_name}.txt', 'a') as file:
+    params_file = f'{params_dir}/{source_model_name}_{target_model_name}.txt'
+    with open(params_file, 'a') as file:
         file.write(f'{cnt}:\n')
         file.write(f'source:\n{source_model.__str__()}\n')
         file.write(f'target:\n{target_model.__str__()}\n')
         file.write(f'{trainer}\n')
+    print('written to ' + params_file)
 
 
 def main():
-    print('sampling......')
+    print('sampling...')
     source_model, dataloader = sample()
     timer.update_time('sampling')
 
-    print('training......')
+    print('training...')
     target_model, trainer = train(dataloader)
     timer.update_time('training')
 
-    output(source_model, target_model, trainer)
+    if const.WRITE_FILE:
+        print('output...')
+        output(source_model, target_model, trainer)
+        timer.update_time('output')
+    elif const.SHOW_IMG:
+        trainer.plot(None)
 
 
 if __name__ == '__main__':

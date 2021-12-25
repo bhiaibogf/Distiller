@@ -11,6 +11,12 @@ else:
 
 USE_VEC = True
 
+SHOW_LOSS = False
+SHOW_MODEL = False
+SHOW_IMG = False
+
+WRITE_FILE = True
+
 PI = math.pi
 
 ZERO = torch.zeros(1, device='cuda' if USE_CUDA else 'cpu')
