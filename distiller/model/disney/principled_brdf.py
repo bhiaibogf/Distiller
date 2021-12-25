@@ -80,7 +80,7 @@ class PrincipledBrdf(BrdfBase):
         if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
-        half = f.normalize(light + view, p=2, dim=1)
+        half = funcs.half(light, view)
 
         cos_nl = funcs.batch_vec_dot(normal, light)
         cos_nv = funcs.batch_vec_dot(normal, view)
@@ -146,7 +146,7 @@ class PrincipledBrdf(BrdfBase):
         if config.USE_CUDA:
             x = x.cuda()
             y = y.cuda()
-        half = f.normalize(light + view, p=2, dim=0)
+        half = funcs.half(light, view)
 
         cos_nl = normal.dot(light)
         cos_nv = normal.dot(view)

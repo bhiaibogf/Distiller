@@ -47,7 +47,7 @@ class MicrofacetBase(BrdfBase):
         pass
 
     def _shade(self, light, normal, view):
-        half = f.normalize(light + view, p=2, dim=1)
+        half = funcs.half(light, view)
 
         # print(self.d(funcs.batch_vec_dot(normal, half)))
         ks = funcs.batch_scale(
@@ -62,7 +62,7 @@ class MicrofacetBase(BrdfBase):
         return ks + kd
 
     def _eval(self, light, normal, view):
-        half = f.normalize(light + view, p=2, dim=0)
+        half = funcs.half(light, view)
         ls = funcs.mon2lin(self._base_color)
         ls *= self.d(normal.dot(half)) * self.g(light, normal, view) * self.f(half.dot(view))
         ls /= 4 * normal.dot(light) * normal.dot(view)

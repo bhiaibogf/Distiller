@@ -1,4 +1,7 @@
 import torch
+import torch.nn.functional as f
+
+from distiller.utils import config
 
 
 def sqr(a):
@@ -57,3 +60,10 @@ def batch_scale_batch(num, vecs):
 
 def batch_lerp(a, b, x):
     return batch_scale(1 - x, a) + batch_scale(x, b)
+
+
+def half(light, view):
+    if config.USE_VEC:
+        return f.normalize(light + view, p=2, dim=1)
+    else:
+        return f.normalize(light + view, p=2, dim=0)
