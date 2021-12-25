@@ -5,26 +5,17 @@ from distiller.utils import Dataloader, Trainer, ModelReader, config, timer
 
 
 def sample():
-    train_data_size = 8192
-    valid_data_size = 1024
-    batch_size = 1024
-
-    # for test
-    # train_data_size = 80
-    # valid_data_size = 20
-    # batch_size = 4
-
     # source_model = PrincipledBrdf(0.05, 0.7438)
     source_model = PrincipledBrdf(0.8, 0.2)
     # source_model = PhongModel()
     if config.USE_CUDA:
         source_model = source_model.cuda()
-    reader = ModelReader(train_data_size, valid_data_size, source_model)
+    reader = ModelReader(config.TRAIN_DATA_SIZE, config.VALID_DATA_SIZE, source_model)
 
     # source_model = Merl('blue-metallic-paint')
-    # reader = BsdfReader2(f'BSDF/{source_model}.txt', train_data_size, valid_data_size)
+    # reader = BsdfReader2(f'BSDF/{source_model}.txt', TRAIN_DATA_SIZE, VALID_DATA_SIZE)
 
-    dataloader = Dataloader(reader, batch_size)
+    dataloader = Dataloader(reader, config.BATCH_SIZE)
 
     return source_model, dataloader
 
@@ -35,7 +26,7 @@ def train(dataloader):
         target_model = target_model.cuda()
 
     trainer = Trainer(target_model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
-    trainer.train(32)
+    trainer.train(config.EPOCH)
 
     return target_model, trainer
 
@@ -44,17 +35,17 @@ def output(source_model, target_model, trainer):
     source_model_name = source_model.__class__.__name__.split('Model')[0]
     target_model_name = target_model.__class__.__name__.split('Model')[0]
 
-    pic_dir = './img'
-    if not os.path.exists(pic_dir):
-        os.makedirs(pic_dir)
+    img_dir = config.IMG_DIR
+    if not os.path.exists(img_dir):
+        os.makedirs(img_dir)
     cnt = 0
-    while os.path.exists(f'{pic_dir}/{source_model_name}_{target_model_name}_{cnt}.png'):
+    while os.path.exists(f'{img_dir}/{source_model_name}_{target_model_name}_{cnt}.png'):
         cnt += 1
-    pic_file = f'{pic_dir}/{source_model_name}_{target_model_name}_{cnt}.png'
-    trainer.plot(pic_file)
-    print('drawn to ' + pic_file)
+    img_file = f'{img_dir}/{source_model_name}_{target_model_name}_{cnt}.png'
+    trainer.plot(img_file)
+    print('drawn to ' + img_file)
 
-    params_dir = './params'
+    params_dir = config.PARAMS_DIR
     if not os.path.exists(params_dir):
         os.makedirs(params_dir)
     params_file = f'{params_dir}/{source_model_name}_{target_model_name}.txt'
