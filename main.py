@@ -6,13 +6,14 @@ from distiller.utils import Dataloader, Trainer, ModelReader, config, timer
 
 def sample():
     # source_model = PrincipledBrdf(0.05, 0.7438)
-    source_model = PrincipledBrdf(0.8, 0.2)
+    # source_model = PrincipledBrdf(0.8, 0.2)
     # source_model = PhongModel()
-    if config.USE_CUDA:
-        source_model = source_model.cuda()
-    reader = ModelReader(config.TRAIN_DATA_SIZE, config.VALID_DATA_SIZE, source_model)
+    # if config.USE_CUDA:
+    #     source_model = source_model.cuda()
+    # reader = ModelReader(config.TRAIN_DATA_SIZE, config.VALID_DATA_SIZE, source_model)
 
-    # source_model = Merl('blue-metallic-paint')
+    source_model = MerlModel('blue-metallic-paint')
+    reader = ModelReader(config.TRAIN_DATA_SIZE, config.VALID_DATA_SIZE, source_model)
     # reader = BsdfReader2(f'BSDF/{source_model}.txt', TRAIN_DATA_SIZE, VALID_DATA_SIZE)
 
     dataloader = Dataloader(reader, config.BATCH_SIZE)
