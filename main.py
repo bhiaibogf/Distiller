@@ -53,7 +53,7 @@ def output(source_model, target_model, trainer):
         file.write(f'{cnt}:\n')
         file.write(f'source:\n{source_model.__str__()}\n')
         file.write(f'target:\n{target_model.__str__()}\n')
-        file.write(f'{trainer}\n')
+        file.write(f'{trainer}\n\n')
     print('written to ' + params_file)
 
 
@@ -66,12 +66,14 @@ def main():
     target_model, trainer = train(dataloader)
     timer.update_time('training')
 
+    print('output...')
+    print(target_model)
+    print(trainer)
     if config.WRITE_FILE:
-        print('output...')
         output(source_model, target_model, trainer)
-        timer.update_time('output')
     elif config.SHOW_IMG:
         trainer.plot(None)
+    timer.update_time('output')
 
 
 if __name__ == '__main__':
