@@ -4,13 +4,7 @@ from distiller.model import *
 from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2, timer
 
 
-def main():
-    if torch.cuda.is_available():
-        print('use cuda')
-    else:
-        const.USE_CUDA = False
-        print('use cpu')
-
+def sample():
     train_data_size = 81920
     valid_data_size = 10240
     batch_size = 1024
@@ -19,8 +13,6 @@ def main():
     # train_data_size = 80
     # valid_data_size = 20
     # batch_size = 4
-
-    print('sampling......')
 
     # source_model = PrincipledBrdf(0.05, 0.7438)
     source_model = PrincipledBrdf(0.8, 0.2)
@@ -34,21 +26,23 @@ def main():
 
     dataloader = Dataloader(reader, batch_size)
 
-    timer.update_time('sampling')
+    return source_model, dataloader
 
-    print('training......')
 
-    model = GgxModel()
+def train(dataloader):
+    target_model = GgxModel()
     if const.USE_CUDA:
-        model = model.cuda()
+        target_model = target_model.cuda()
 
-    trainer = Trainer(model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
+    trainer = Trainer(target_model, dataloader.get_train_dataloader(), dataloader.get_valid_dataloader())
     trainer.train(32)
 
-    source_model_name = source_model.__class__.__name__.split('Model')[0]
-    target_model_name = model.__class__.__name__.split('Model')[0]
+    return target_model, trainer
 
-    timer.update_time('training')
+
+def output(source_model, target_model, trainer):
+    source_model_name = source_model.__class__.__name__.split('Model')[0]
+    target_model_name = target_model.__class__.__name__.split('Model')[0]
 
     pic_dir = './img'
     if not os.path.exists(pic_dir):
@@ -64,7 +58,19 @@ def main():
     with open(f'{params_dir}/{source_model_name}_{target_model_name}.txt', 'a') as file:
         file.write(f'{cnt}:\n')
         file.write(f'source:\n{source_model.__str__()}\n')
-        file.write(f'target:\n{model.__str__()}\n\n')
+        file.write(f'target:\n{target_model.__str__()}\n\n')
+
+
+def main():
+    print('sampling......')
+    source_model, dataloader = sample()
+    timer.update_time('sampling')
+
+    print('training......')
+    target_model, trainer = train(dataloader)
+    timer.update_time('training')
+
+    output(source_model, target_model, trainer)
 
 
 if __name__ == '__main__':
