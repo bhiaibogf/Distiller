@@ -1,7 +1,7 @@
 import os
 
 from distiller.model import *
-from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2
+from distiller.utils import Dataloader, Trainer, ModelReader, const, BsdfReader2, timer
 
 
 def main():
@@ -20,6 +20,8 @@ def main():
     # valid_data_size = 20
     # batch_size = 4
 
+    print('sampling......')
+
     # source_model = PrincipledBrdf(0.05, 0.7438)
     source_model = PrincipledBrdf(0.8, 0.2)
     # source_model = PhongModel()
@@ -32,6 +34,10 @@ def main():
 
     dataloader = Dataloader(reader, batch_size)
 
+    timer.update_time('sampling')
+
+    print('training......')
+
     model = GgxModel()
     if const.USE_CUDA:
         model = model.cuda()
@@ -41,6 +47,8 @@ def main():
 
     source_model_name = source_model.__class__.__name__.split('Model')[0]
     target_model_name = model.__class__.__name__.split('Model')[0]
+
+    timer.update_time('training')
 
     pic_dir = './img'
     if not os.path.exists(pic_dir):
