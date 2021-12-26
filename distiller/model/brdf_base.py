@@ -66,4 +66,4 @@ class BrdfBase(nn.Module):
                     thread.start()
                 for thread in threads:
                     thread.join()
-                return result
+            return result
