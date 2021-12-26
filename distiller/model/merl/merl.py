@@ -17,7 +17,12 @@ class MerlModel:
         if config.USE_VEC:
             a = funcs.batch_scale_batch(cos_alpha, vector)
             b = funcs.batch_scale_batch(1 - cos_alpha, funcs.batch_scale(funcs.batch_vec_dot(vector, axis), axis))
-            c = funcs.batch_scale_batch(sin_alpha, torch.tensor(np.cross(axis.numpy(), vector.numpy())))
+            if config.USE_CUDA:
+                c = funcs.batch_scale_batch(sin_alpha,
+                                            torch.tensor(np.cross(axis.to('cpu').numpy(), vector.to('cpu').numpy())
+                                                         , device='cuda'))
+            else:
+                c = funcs.batch_scale_batch(sin_alpha, torch.tensor(np.cross(axis.numpy(), vector.numpy())))
         else:
             a = vector * cos_alpha
             b = axis * torch.dot(vector, axis) * (1 - cos_alpha)
