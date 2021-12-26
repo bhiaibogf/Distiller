@@ -25,6 +25,8 @@ BATCH_SIZE = 1024
 
 EPOCH = 32
 
+SET_SEED = True
+
 # for test
 # TRAIN_DATA_SIZE = 80
 # VALID_DATA_SIZE = 20

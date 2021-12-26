@@ -3,6 +3,9 @@ import torch.nn.functional as f
 
 from distiller.utils import const, config
 
+if config.SET_SEED:
+    torch.manual_seed(0)
+
 
 class Sampler:
     @staticmethod
