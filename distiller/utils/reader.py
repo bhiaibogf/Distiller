@@ -52,8 +52,8 @@ class ModelReader(Reader):
         return inputs, self._get_data(inputs)
 
     def get_valid_data(self):
-        light = Sampler.cos_hemisphere(self._train_data_size)
-        view = Sampler.hemisphere(self._train_data_size)
+        light = Sampler.cos_hemisphere(self._valid_data_size)
+        view = Sampler.hemisphere(self._valid_data_size)
         inputs = torch.stack((light, view), 1)
         if config.USE_CUDA:
             inputs = inputs.cuda()
